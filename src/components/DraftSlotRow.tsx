@@ -3,8 +3,8 @@
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import type { PlayerCard } from "@/lib/types";
-import { ROLE_BADGE, SLOT_LABELS } from "@/lib/draft";
-import { DragHandleIcon } from "./DragHandleIcon";
+import { DraftStatsColumns, DraftStatsInline } from "./PlayerStats";
+import { PlayerMetaLine } from "./PlayerMetaLine";
 
 interface DraftSlotRowProps {
   slot: number;
@@ -58,56 +58,43 @@ function DraggablePlayer({
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const badge = ROLE_BADGE[player.draft_role];
+  const ratings = player.ratings;
+  const statsHidden = !showStats || !ratings;
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-1.5 border border-gold/30 bg-[#243824] px-1.5 py-1.5 hover:border-gold/50 sm:gap-2 sm:px-2 sm:py-2"
+      className="border border-gold/30 bg-[#243824] px-1.5 py-1.5 hover:border-gold/50 sm:px-2 sm:py-2"
     >
-      <button
-        type="button"
-        aria-label={`Reorder ${player.full_name}`}
-        className="touch-none shrink-0 cursor-grab rounded px-0.5 py-1 text-cream-muted active:cursor-grabbing active:text-gold sm:px-1 sm:py-1.5"
-        {...attributes}
-        {...listeners}
-      >
-        <DragHandleIcon />
-      </button>
-      <span className="w-4 shrink-0 text-center font-[family-name:var(--font-mono)] text-xs text-cream-muted sm:w-5 sm:text-sm">
-        {slot}
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-[13px] font-semibold leading-tight text-cream sm:text-sm">
-          {player.full_name}
-        </p>
-        <p className="text-[10px] leading-tight text-cream-muted sm:text-[11px]">
-          {SLOT_LABELS[slot]} · {player.credits} cr
-        </p>
-      </div>
-      {badge && (
-        <span
-          className={`shrink-0 rounded border px-1.5 py-px text-[8px] font-bold tracking-wider sm:px-2 sm:py-0.5 sm:text-[9px] ${badge.className}`}
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        <button
+          type="button"
+          aria-label={`Reorder ${player.full_name}`}
+          className="touch-none shrink-0 cursor-grab rounded px-0.5 py-1 text-cream-muted active:cursor-grabbing active:text-gold sm:px-1 sm:py-1.5"
+          {...attributes}
+          {...listeners}
         >
-          {badge.label}
+          <DragHandleIcon />
+        </button>
+        <span className="w-4 shrink-0 text-center font-[family-name:var(--font-mono)] text-xs text-cream-muted sm:w-5 sm:text-sm">
+          {slot}
         </span>
-      )}
-      {showStats && player.ratings && (
-        <div className="hidden shrink-0 gap-2 sm:flex">
-          <MiniStat label="BAT" v={player.ratings.batting_rating} />
-          <MiniStat label="BWL" v={player.ratings.bowling_rating} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[13px] font-semibold leading-tight text-cream sm:text-sm">
+            {player.full_name}
+          </p>
+          <PlayerMetaLine
+            country={player.country}
+            draftRole={player.draft_role}
+            credits={player.credits}
+          />
         </div>
-      )}
-    </div>
-  );
-}
-
-function MiniStat({ label, v }: { label: string; v: number }) {
-  return (
-    <div className="text-center">
-      <p className="text-[8px] text-cream-muted">{label}</p>
-      <p className="font-[family-name:var(--font-mono)] text-xs text-gold">{Math.round(v)}</p>
+        <DraftStatsColumns ratings={ratings} hidden={statsHidden} />
+      </div>
+      <div className="mt-1 pl-9 sm:hidden">
+        <DraftStatsInline ratings={ratings} hidden={statsHidden} />
+      </div>
     </div>
   );
 }

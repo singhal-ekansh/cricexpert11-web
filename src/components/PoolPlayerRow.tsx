@@ -1,5 +1,10 @@
 import type { PlayerCard } from "@/lib/types";
-import { ROLE_BADGE } from "@/lib/draft";
+import {
+  DraftStatsColumns,
+  PoolStatsColumns,
+  PoolStatsInline,
+} from "./PlayerStats";
+import { PlayerMetaLine } from "./PlayerMetaLine";
 
 interface Props {
   player: PlayerCard;
@@ -8,10 +13,8 @@ interface Props {
 }
 
 export function PoolPlayerRow({ player, onPick, showStats = true }: Props) {
-  const badge = ROLE_BADGE[player.draft_role] ?? {
-    label: player.draft_role.toUpperCase(),
-    className: "bg-bg-card text-cream-muted border-border",
-  };
+  const ratings = player.ratings;
+  const statsHidden = !showStats || !ratings;
 
   return (
     <button
@@ -23,35 +26,17 @@ export function PoolPlayerRow({ player, onPick, showStats = true }: Props) {
         <p className="truncate text-[13px] font-semibold leading-tight text-cream group-hover:text-gold-bright sm:text-sm">
           {player.full_name}
         </p>
-        <p className="text-[10px] leading-tight text-cream-muted sm:text-[11px]">
-          {player.country} · {player.credits} cr
-        </p>
+        <PlayerMetaLine
+          country={player.country}
+          draftRole={player.draft_role}
+          credits={player.credits}
+        />
+        <div className="mt-0.5 sm:hidden">
+          <PoolStatsInline ratings={ratings} hidden={statsHidden} />
+        </div>
       </div>
 
-      <span
-        className={`shrink-0 rounded border px-1.5 py-px text-[8px] font-bold tracking-wider sm:px-2 sm:py-0.5 sm:text-[9px] ${badge.className}`}
-      >
-        {badge.label}
-      </span>
-
-      {showStats && player.ratings && (
-        <div className="hidden shrink-0 gap-2 sm:flex">
-          <Stat label="BAT" value={player.ratings.batting_rating} />
-          <Stat label="POW" value={player.ratings.power} />
-          <Stat label="BWL" value={player.ratings.bowling_rating} />
-        </div>
-      )}
+      <PoolStatsColumns ratings={ratings} hidden={statsHidden} />
     </button>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="text-center">
-      <p className="text-[8px] tracking-wider text-cream-muted">{label}</p>
-      <p className="font-[family-name:var(--font-mono)] text-sm text-gold-bright">
-        {Math.round(value)}
-      </p>
-    </div>
   );
 }

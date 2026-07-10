@@ -19,6 +19,13 @@ export const ROLE_BADGE: Record<string, { label: string; className: string }> = 
   wicketkeeper: { label: "WK", className: "bg-pink-900/80 text-pink-300 border-pink-700" },
 };
 
+export const ROLE_INLINE_LABEL: Record<string, string> = {
+  batsman: "Batter",
+  all_rounder: "AR",
+  bowler: "Bowler",
+  wicketkeeper: "WK",
+};
+
 /** Display order for pool: batters → WK → AR → bowlers */
 export const POOL_ROLE_ORDER: Record<string, number> = {
   batsman: 0,

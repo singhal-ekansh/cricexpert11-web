@@ -73,7 +73,7 @@ export function GameLogo({
           aria-label={BRAND_NAME}
         >
           <span className="text-cream">Cric</span>
-          <span className="text-gold-bright">expert</span>
+          <span className="text-gold-bright">Expert</span>
           <span className="text-gold-bright">11</span>
         </span>
       </div>

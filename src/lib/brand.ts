@@ -1,5 +1,5 @@
-export const BRAND_NAME = "Cricexpert11";
-export const BRAND_SHORT = "Cricexpert";
+export const BRAND_NAME = "CricExpert11";
+export const BRAND_SHORT = "CricExpert";
 export const BRAND_TAGLINE = "Build the smartest XI";
 export const BRAND_HERO_COPY =
   "Think like a selector — build the smartest XI and prove it.";
