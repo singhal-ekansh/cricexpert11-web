@@ -15,14 +15,14 @@ export const SLOT_LABELS: Record<number, string> = {
 export const ROLE_BADGE: Record<string, { label: string; className: string }> = {
   batsman: { label: "BAT", className: "bg-emerald-900/80 text-emerald-300 border-emerald-700" },
   all_rounder: { label: "AR", className: "bg-sky-900/80 text-sky-300 border-sky-700" },
-  bowler: { label: "BOL", className: "bg-rose-900/80 text-rose-300 border-rose-700" },
+  bowler: { label: "BWL", className: "bg-rose-900/80 text-rose-300 border-rose-700" },
   wicketkeeper: { label: "WK", className: "bg-pink-900/80 text-pink-300 border-pink-700" },
 };
 
 export const ROLE_INLINE_LABEL: Record<string, string> = {
   batsman: "BAT",
   all_rounder: "AR",
-  bowler: "BOL",
+  bowler: "BWL",
   wicketkeeper: "WK",
 };
 

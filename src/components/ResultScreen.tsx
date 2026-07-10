@@ -14,7 +14,7 @@ function formatRole(role: string): string {
   if (role === "Wicketkeeper-batsman") return "WK";
   if (role === "All-rounder") return "AR";
   if (role === "Batsman") return "BAT";
-  if (role === "Bowler") return "BOL";
+  if (role === "Bowler") return "BWL";
   if (role === "Wicketkeeper") return "WK";
   return role;
 }

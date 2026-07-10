@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DraftBoard } from "@/components/DraftBoard";
 import { GameLogo } from "@/components/GameLogo";
 import { HowToPlayModal } from "@/components/HowToPlayModal";
@@ -10,11 +10,16 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { scoreTeam, startGame } from "@/lib/api";
 import { firstEmptySlot, isLineupComplete } from "@/lib/draft";
 import {
+  clearDraftState,
   DEFAULT_GAME_SETTINGS,
   getBestScore,
   getGameMode,
   getGameSettings,
+  isDraftResumable,
+  loadDraftState,
   saveBestScore,
+  saveDraftState,
+  type SavedDraftState,
 } from "@/lib/storage";
 import type {
   BestScoreRecord,
@@ -39,8 +44,10 @@ export default function PlayPage() {
   const [isNewBest, setIsNewBest] = useState(false);
   const [best, setBest] = useState<BestScoreRecord | null>(null);
   const [showHowTo, setShowHowTo] = useState(false);
+  const [resumed, setResumed] = useState(false);
   const [mode, setMode] = useState<GameMode>("easy");
   const [settings, setSettings] = useState<GameSettings>(DEFAULT_GAME_SETTINGS);
+  const booted = useRef(false);
   const showStats = mode === "easy";
 
   const playerMap = useMemo(
@@ -51,9 +58,26 @@ export default function PlayPage() {
   const draftComplete =
     picks.length >= (game?.rounds ?? 11) && isLineupComplete(lineup);
 
+  const restoreDraft = useCallback((saved: SavedDraftState) => {
+    setMode(saved.mode);
+    setSettings(saved.settings);
+    setGame(saved.game);
+    setPicks(saved.picks);
+    setLineup(saved.lineup);
+    setCurrentRound(saved.currentRound);
+    setPhase(saved.phase);
+    setScore(saved.score ?? null);
+    setIsNewBest(saved.isNewBest ?? false);
+    setError(null);
+    setResumed(true);
+    setBest(getBestScore(saved.mode, saved.settings));
+    setLoading(false);
+  }, []);
+
   const initGame = useCallback(async () => {
     const activeSettings = getGameSettings();
     const activeMode = getGameMode();
+    clearDraftState();
     setSettings(activeSettings);
     setMode(activeMode);
     setLoading(true);
@@ -64,6 +88,7 @@ export default function PlayPage() {
     setLineup({});
     setScore(null);
     setIsNewBest(false);
+    setResumed(false);
     try {
       const data = await startGame(activeSettings, activeMode);
       setGame(data);
@@ -75,8 +100,44 @@ export default function PlayPage() {
   }, []);
 
   useEffect(() => {
+    if (booted.current) return;
+    booted.current = true;
+
+    const saved = loadDraftState();
+    if (saved && isDraftResumable(saved)) {
+      restoreDraft(saved);
+      return;
+    }
+    if (saved) clearDraftState();
     initGame();
-  }, [initGame]);
+  }, [initGame, restoreDraft]);
+
+  useEffect(() => {
+    if (loading || !game) return;
+    if (phase !== "draft" && phase !== "result") return;
+    saveDraftState({
+      mode,
+      settings,
+      game,
+      picks,
+      lineup,
+      currentRound,
+      phase,
+      score: score ?? undefined,
+      isNewBest,
+    });
+  }, [
+    loading,
+    game,
+    mode,
+    settings,
+    picks,
+    lineup,
+    currentRound,
+    phase,
+    score,
+    isNewBest,
+  ]);
 
   useEffect(() => {
     const savedMode = getGameMode();
@@ -186,6 +247,12 @@ export default function PlayPage() {
       </header>
 
       <div className="mx-auto max-w-7xl px-4 py-6">
+        {resumed && !loading && phase === "draft" && (
+          <div className="mb-4 rounded-lg border border-gold/30 bg-gold/5 px-4 py-2.5 text-center text-xs text-cream-muted">
+            Draft resumed — same picks and pools as before refresh.
+          </div>
+        )}
+
         {loading && (
           <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-gold border-t-transparent" />
@@ -201,7 +268,7 @@ export default function PlayPage() {
               onClick={initGame}
               className="ml-3 underline hover:no-underline"
             >
-              Retry
+              Start new draft
             </button>
           </div>
         )}

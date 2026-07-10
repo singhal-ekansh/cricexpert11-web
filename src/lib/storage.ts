@@ -2,12 +2,29 @@ import type {
   BestScoreRecord,
   GameMode,
   GameSettings,
+  GameStartResponse,
+  PlayerCard,
   ScoreResponse,
 } from "./types";
 
 const DIFFICULTY_KEY = "cricratings_game_mode";
 const SETTINGS_KEY = "cricratings_game_settings";
 const BEST_KEY_PREFIX = "cricratings_best_score_";
+const DRAFT_KEY = "cricratings_active_draft";
+const DRAFT_TTL_MS = 4 * 60 * 60 * 1000;
+
+export interface SavedDraftState {
+  savedAt: string;
+  mode: GameMode;
+  settings: GameSettings;
+  game: GameStartResponse;
+  picks: PlayerCard[];
+  lineup: Record<number, string>;
+  currentRound: number;
+  phase: "draft" | "result";
+  score?: ScoreResponse;
+  isNewBest?: boolean;
+}
 
 export const DEFAULT_GAME_SETTINGS: GameSettings = {
   format: "t20i",
@@ -97,4 +114,49 @@ export function scoreSettingsFromResponse(
     format: score.format,
     wicketMode: score.wicket_mode,
   };
+}
+
+export function saveDraftState(
+  state: Omit<SavedDraftState, "savedAt">,
+): void {
+  if (typeof window === "undefined") return;
+  try {
+    const payload: SavedDraftState = { ...state, savedAt: new Date().toISOString() };
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(payload));
+  } catch {
+    // sessionStorage full or unavailable — ignore
+  }
+}
+
+export function loadDraftState(): SavedDraftState | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as SavedDraftState;
+  } catch {
+    return null;
+  }
+}
+
+export function clearDraftState(): void {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.removeItem(DRAFT_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+export function isDraftResumable(saved: SavedDraftState): boolean {
+  const mode = getGameMode();
+  const settings = getGameSettings();
+  if (saved.mode !== mode) return false;
+  if (saved.settings.format !== settings.format) return false;
+  if (saved.settings.wicketMode !== settings.wicketMode) return false;
+  if (!saved.game?.game_id) return false;
+  if (saved.phase !== "draft" && saved.phase !== "result") return false;
+  const age = Date.now() - new Date(saved.savedAt).getTime();
+  if (age > DRAFT_TTL_MS) return false;
+  return true;
 }

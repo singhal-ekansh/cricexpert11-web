@@ -3,7 +3,7 @@
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import type { PlayerCard } from "@/lib/types";
-import { DraftStatsRow } from "./PlayerStats";
+import { PoolStatsRow } from "./PlayerStats";
 import { DragHandleIcon } from "./DragHandleIcon";
 import { PlayerMetaLine } from "./PlayerMetaLine";
 
@@ -90,7 +90,7 @@ function DraggablePlayer({
           credits={player.credits}
         />
       </div>
-      <DraftStatsRow ratings={ratings} hidden={statsHidden} />
+      <PoolStatsRow ratings={ratings} hidden={statsHidden} />
     </div>
   );
 }

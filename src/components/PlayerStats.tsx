@@ -34,22 +34,7 @@ export function PoolStatsRow({
     <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
       <StatColumn label="BAT" value={ratings?.batting_rating} hidden={hidden} />
       <StatColumn label="POW" value={ratings?.power} hidden={hidden} />
-      <StatColumn label="BOL" value={ratings?.bowling_rating} hidden={hidden} />
-    </div>
-  );
-}
-
-export function DraftStatsRow({
-  ratings,
-  hidden = false,
-}: {
-  ratings?: NonNullable<import("@/lib/types").PlayerCard["ratings"]>;
-  hidden?: boolean;
-}) {
-  return (
-    <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
-      <StatColumn label="BAT" value={ratings?.batting_rating} hidden={hidden} />
-      <StatColumn label="BOL" value={ratings?.bowling_rating} hidden={hidden} />
+      <StatColumn label="BWL" value={ratings?.bowling_rating} hidden={hidden} />
     </div>
   );
 }
