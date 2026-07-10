@@ -3,7 +3,7 @@
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import type { PlayerCard } from "@/lib/types";
-import { DraftStatsColumns, DraftStatsInline } from "./PlayerStats";
+import { DraftStatsRow } from "./PlayerStats";
 import { DragHandleIcon } from "./DragHandleIcon";
 import { PlayerMetaLine } from "./PlayerMetaLine";
 
@@ -66,36 +66,31 @@ function DraggablePlayer({
     <div
       ref={setNodeRef}
       style={style}
-      className="border border-gold/30 bg-[#243824] px-1.5 py-1.5 hover:border-gold/50 sm:px-2 sm:py-2"
+      className="flex items-center gap-1.5 border border-gold/30 bg-[#243824] px-1.5 py-2 hover:border-gold/50 sm:gap-2 sm:px-2"
     >
-      <div className="flex items-center gap-1.5 sm:gap-2">
-        <button
-          type="button"
-          aria-label={`Reorder ${player.full_name}`}
-          className="touch-none shrink-0 cursor-grab rounded px-0.5 py-1 text-cream-muted active:cursor-grabbing active:text-gold sm:px-1 sm:py-1.5"
-          {...attributes}
-          {...listeners}
-        >
-          <DragHandleIcon />
-        </button>
-        <span className="w-4 shrink-0 text-center font-[family-name:var(--font-mono)] text-xs text-cream-muted sm:w-5 sm:text-sm">
-          {slot}
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[13px] font-semibold leading-tight text-cream sm:text-sm">
-            {player.full_name}
-          </p>
-          <PlayerMetaLine
-            country={player.country}
-            draftRole={player.draft_role}
-            credits={player.credits}
-          />
-        </div>
-        <DraftStatsColumns ratings={ratings} hidden={statsHidden} />
+      <button
+        type="button"
+        aria-label={`Reorder ${player.full_name}`}
+        className="touch-none shrink-0 cursor-grab rounded px-0.5 py-0.5 text-cream-muted active:cursor-grabbing active:text-gold"
+        {...attributes}
+        {...listeners}
+      >
+        <DragHandleIcon />
+      </button>
+      <span className="w-4 shrink-0 text-center font-[family-name:var(--font-mono)] text-xs text-cream-muted sm:w-5 sm:text-sm">
+        {slot}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[13px] font-semibold leading-tight text-cream sm:text-sm">
+          {player.full_name}
+        </p>
+        <PlayerMetaLine
+          country={player.country}
+          draftRole={player.draft_role}
+          credits={player.credits}
+        />
       </div>
-      <div className="mt-1 pl-9 sm:hidden">
-        <DraftStatsInline ratings={ratings} hidden={statsHidden} />
-      </div>
+      <DraftStatsRow ratings={ratings} hidden={statsHidden} />
     </div>
   );
 }

@@ -13,8 +13,8 @@ interface Props {
 function formatRole(role: string): string {
   if (role === "Wicketkeeper-batsman") return "WK";
   if (role === "All-rounder") return "AR";
-  if (role === "Batsman") return "Batter";
-  if (role === "Bowler") return "Bowler";
+  if (role === "Batsman") return "BAT";
+  if (role === "Bowler") return "BOL";
   if (role === "Wicketkeeper") return "WK";
   return role;
 }

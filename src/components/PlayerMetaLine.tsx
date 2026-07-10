@@ -1,4 +1,5 @@
 import { ROLE_BADGE, ROLE_INLINE_LABEL } from "@/lib/draft";
+import { countryCode } from "@/lib/country";
 
 interface Props {
   country: string;
@@ -14,16 +15,17 @@ export function PlayerMetaLine({ country, draftRole, credits }: Props) {
   const roleLabel = ROLE_INLINE_LABEL[draftRole] ?? badge.label;
 
   return (
-    <span className="inline-flex flex-wrap items-center gap-x-1 text-[10px] leading-tight sm:text-[11px]">
-      <span className="text-cream-muted">{country}</span>
-      <span className="text-cream-muted/50">·</span>
+    <p className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[10px] leading-none sm:mt-1 sm:gap-2 sm:text-[11px]">
       <span
-        className={`rounded border px-1 py-px text-[8px] font-bold tracking-wider sm:px-1.5 sm:text-[9px] ${badge.className}`}
+        className={`shrink-0 rounded border px-1.5 py-px text-[7px] font-bold tracking-wide sm:text-[8px] ${badge.className}`}
       >
         {roleLabel}
       </span>
-      <span className="text-cream-muted/50">·</span>
-      <span className="text-cream-muted">{credits} cr</span>
-    </span>
+      <span className="shrink-0 font-[family-name:var(--font-mono)] text-[9px] tracking-wide text-cream-muted/80 sm:text-[10px]">
+        {countryCode(country)}
+      </span>
+      <span className="shrink-0 text-cream-muted/50">·</span>
+      <span className="shrink-0 tabular-nums text-cream-muted">{credits}cr</span>
+    </p>
   );
 }
