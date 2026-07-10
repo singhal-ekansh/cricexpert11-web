@@ -4,6 +4,7 @@ import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import type { PlayerCard } from "@/lib/types";
 import { DraftStatsColumns, DraftStatsInline } from "./PlayerStats";
+import { DragHandleIcon } from "./DragHandleIcon";
 import { PlayerMetaLine } from "./PlayerMetaLine";
 
 interface DraftSlotRowProps {
