@@ -4,6 +4,7 @@ import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import type { PlayerCard } from "@/lib/types";
 import { ROLE_BADGE, SLOT_LABELS } from "@/lib/draft";
+import { DragHandleIcon } from "./DragHandleIcon";
 
 interface DraftSlotRowProps {
   slot: number;
@@ -63,31 +64,31 @@ function DraggablePlayer({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 border border-gold/30 bg-[#243824] px-2 py-2.5 hover:border-gold/50 sm:gap-3 sm:px-3"
+      className="flex items-center gap-1.5 border border-gold/30 bg-[#243824] px-1.5 py-1.5 hover:border-gold/50 sm:gap-2 sm:px-2 sm:py-2"
     >
       <button
         type="button"
         aria-label={`Reorder ${player.full_name}`}
-        className="touch-none shrink-0 cursor-grab rounded px-1 py-2 text-cream-muted active:cursor-grabbing active:text-gold"
+        className="touch-none shrink-0 cursor-grab rounded px-0.5 py-1 text-cream-muted active:cursor-grabbing active:text-gold sm:px-1 sm:py-1.5"
         {...attributes}
         {...listeners}
       >
         <DragHandleIcon />
       </button>
-      <span className="w-5 shrink-0 text-center font-[family-name:var(--font-mono)] text-sm text-cream-muted">
+      <span className="w-4 shrink-0 text-center font-[family-name:var(--font-mono)] text-xs text-cream-muted sm:w-5 sm:text-sm">
         {slot}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-cream">
+        <p className="truncate text-[13px] font-semibold leading-tight text-cream sm:text-sm">
           {player.full_name}
         </p>
-        <p className="text-[11px] text-cream-muted">
+        <p className="text-[10px] leading-tight text-cream-muted sm:text-[11px]">
           {SLOT_LABELS[slot]} · {player.credits} cr
         </p>
       </div>
       {badge && (
         <span
-          className={`shrink-0 rounded border px-2 py-0.5 text-[9px] font-bold tracking-wider ${badge.className}`}
+          className={`shrink-0 rounded border px-1.5 py-px text-[8px] font-bold tracking-wider sm:px-2 sm:py-0.5 sm:text-[9px] ${badge.className}`}
         >
           {badge.label}
         </span>
@@ -99,25 +100,6 @@ function DraggablePlayer({
         </div>
       )}
     </div>
-  );
-}
-
-function DragHandleIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 16 16"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <circle cx="5" cy="4" r="1.5" />
-      <circle cx="11" cy="4" r="1.5" />
-      <circle cx="5" cy="8" r="1.5" />
-      <circle cx="11" cy="8" r="1.5" />
-      <circle cx="5" cy="12" r="1.5" />
-      <circle cx="11" cy="12" r="1.5" />
-    </svg>
   );
 }
 

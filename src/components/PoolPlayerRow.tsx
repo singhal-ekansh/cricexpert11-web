@@ -17,25 +17,25 @@ export function PoolPlayerRow({ player, onPick, showStats = true }: Props) {
     <button
       type="button"
       onClick={onPick}
-      className="group flex w-full items-center gap-3 rounded-lg border border-gold/25 bg-[#1c1810] px-4 py-3 text-left transition-all hover:border-gold/60 hover:bg-[#241e14]"
+      className="group flex w-full items-center gap-2 rounded-md border border-gold/25 bg-[#1c1810] px-2.5 py-2 text-left transition-all hover:border-gold/60 hover:bg-[#241e14] sm:gap-3 sm:rounded-lg sm:px-3 sm:py-2.5"
     >
       <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold text-cream group-hover:text-gold-bright">
+        <p className="truncate text-[13px] font-semibold leading-tight text-cream group-hover:text-gold-bright sm:text-sm">
           {player.full_name}
         </p>
-        <p className="text-[11px] text-cream-muted">
+        <p className="text-[10px] leading-tight text-cream-muted sm:text-[11px]">
           {player.country} · {player.credits} cr
         </p>
       </div>
 
       <span
-        className={`shrink-0 rounded border px-2 py-0.5 text-[9px] font-bold tracking-wider ${badge.className}`}
+        className={`shrink-0 rounded border px-1.5 py-px text-[8px] font-bold tracking-wider sm:px-2 sm:py-0.5 sm:text-[9px] ${badge.className}`}
       >
         {badge.label}
       </span>
 
       {showStats && player.ratings && (
-        <div className="hidden shrink-0 gap-3 sm:flex">
+        <div className="hidden shrink-0 gap-2 sm:flex">
           <Stat label="BAT" value={player.ratings.batting_rating} />
           <Stat label="POW" value={player.ratings.power} />
           <Stat label="BWL" value={player.ratings.bowling_rating} />

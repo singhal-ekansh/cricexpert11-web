@@ -10,13 +10,22 @@ interface Props {
   onPlayAgain: () => void;
 }
 
+function formatRole(role: string): string {
+  if (role === "Wicketkeeper-batsman") return "WK";
+  if (role === "All-rounder") return "AR";
+  if (role === "Batsman") return "Batter";
+  if (role === "Bowler") return "Bowler";
+  if (role === "Wicketkeeper") return "WK";
+  return role;
+}
+
 export function ResultScreen({ score, mode, isNewBest, onPlayAgain }: Props) {
   return (
     <div className="animate-fade-up mx-auto max-w-2xl">
-      <div className="hero-card rounded-2xl px-6 py-8 sm:px-8">
+      <div className="hero-card rounded-2xl px-5 py-6 sm:px-8 sm:py-8">
         <div className="text-center">
           {isNewBest && (
-            <p className="mb-3 text-xs font-bold tracking-[0.3em] text-gold uppercase">
+            <p className="mb-2 text-xs font-bold tracking-[0.3em] text-gold uppercase sm:mb-3">
               ★ New personal best ★
             </p>
           )}
@@ -26,10 +35,10 @@ export function ResultScreen({ score, mode, isNewBest, onPlayAgain }: Props) {
           <p className="mt-1 text-[10px] font-bold tracking-[0.25em] text-gold uppercase">
             {score.format_label} · {score.wicket_mode_label} · {mode}
           </p>
-          <p className="font-[family-name:var(--font-display)] text-7xl leading-none text-gold-bright md:text-8xl">
+          <p className="font-[family-name:var(--font-display)] text-6xl leading-none text-gold-bright sm:text-7xl md:text-8xl">
             {score.team_score}
           </p>
-          <div className="mt-3 space-y-1 text-sm text-cream-muted">
+          <div className="mt-2 space-y-0.5 text-sm text-cream-muted sm:mt-3">
             <p>{score.total_credits} credits used</p>
             {score.wk_penalty !== 0 && (
               <p className="text-crimson">Missing wicketkeeper</p>
@@ -40,13 +49,12 @@ export function ResultScreen({ score, mode, isNewBest, onPlayAgain }: Props) {
           </div>
         </div>
 
-      <div className="mt-8 overflow-hidden rounded-xl border border-border">
+      <div className="mt-6 overflow-hidden rounded-xl border border-border sm:mt-8">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border bg-bg-panel text-left text-[10px] tracking-widest text-cream-muted uppercase">
-              <th className="px-4 py-3">#</th>
-              <th className="px-4 py-3">Player</th>
-              <th className="px-4 py-3">Role</th>
+              <th className="w-10 px-2.5 py-2 sm:px-3">#</th>
+              <th className="px-2.5 py-2 sm:px-3">Player</th>
             </tr>
           </thead>
           <tbody>
@@ -55,31 +63,35 @@ export function ResultScreen({ score, mode, isNewBest, onPlayAgain }: Props) {
                 key={row.slot}
                 className="border-b border-border/50 bg-bg-card/40 last:border-0"
               >
-                <td className="px-4 py-3 font-[family-name:var(--font-mono)] text-gold">
+                <td className="px-2.5 py-1.5 font-[family-name:var(--font-mono)] text-xs text-gold sm:px-3 sm:py-2 sm:text-sm">
                   {row.slot}
                 </td>
-                <td className="px-4 py-3">
-                  <p className="font-medium text-cream">{row.full_name}</p>
-                  <p className="text-xs text-cream-muted">{row.country}</p>
+                <td className="px-2.5 py-1.5 sm:px-3 sm:py-2">
+                  <p className="truncate text-[13px] leading-tight text-cream sm:text-sm">
+                    <span className="font-medium">{row.full_name}</span>
+                    <span className="text-cream-muted">
+                      {" "}
+                      · {formatRole(row.primary_role)}
+                    </span>
+                  </p>
                 </td>
-                <td className="px-4 py-3 text-cream-muted">{row.primary_role}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center sm:justify-center">
+      <div className="mt-6 flex flex-col items-stretch justify-center gap-3 sm:mt-8 sm:flex-row sm:items-center sm:justify-center">
         <button
           type="button"
           onClick={onPlayAgain}
-          className="btn-gold rounded-xl px-10 py-4 text-sm sm:min-w-[10rem]"
+          className="btn-gold rounded-xl px-10 py-3.5 text-sm sm:min-w-[10rem] sm:py-4"
         >
           Draft again
         </button>
         <Link
           href="/"
-          className="btn-outline rounded-xl px-10 py-4 text-center text-sm sm:min-w-[10rem]"
+          className="btn-outline rounded-xl px-10 py-3.5 text-center text-sm sm:min-w-[10rem] sm:py-4"
         >
           Home
         </Link>
