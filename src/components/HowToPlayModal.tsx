@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { GameLogo } from "@/components/GameLogo";
-import { BRAND_NAME } from "@/lib/brand";
 
 interface Props {
   open: boolean;
@@ -40,25 +39,18 @@ export function HowToPlayModal({ open, onClose, creditBudget }: Props) {
         aria-label="Close"
       />
       <div className="hero-card relative max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl">
-        <div className="sticky top-0 flex items-center justify-between border-b border-border bg-[#12101a]/95 px-5 py-4 backdrop-blur-md">
-          <div className="flex items-center gap-3">
-            <GameLogo variant="mark" className="h-9 w-9" />
-            <div>
-              <p className="text-[10px] font-bold tracking-[0.2em] text-gold/80 uppercase">
-                {BRAND_NAME}
-              </p>
-              <h2
-                id="how-to-play-title"
-                className="font-[family-name:var(--font-display)] text-xl text-cream"
-              >
-                How to play
-              </h2>
-            </div>
-          </div>
+        <div className="sticky top-0 relative flex items-center gap-3 border-b border-border bg-[#12101a]/95 px-5 py-4 pr-12 backdrop-blur-md">
+          <GameLogo variant="modal" />
+          <h2
+            id="how-to-play-title"
+            className="font-[family-name:var(--font-display)] text-xl text-cream"
+          >
+            How to play
+          </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-border px-2.5 py-1 text-sm text-cream-muted transition-colors hover:border-gold/40 hover:text-cream"
+            className="absolute top-3.5 right-4 rounded-lg border border-border px-2.5 py-1 text-sm text-cream-muted transition-colors hover:border-gold/40 hover:text-cream"
             aria-label="Close"
           >
             ✕
@@ -125,9 +117,9 @@ export function HowToPlayModal({ open, onClose, creditBudget }: Props) {
               Build your XI across{" "}
               <span className="text-cream">eleven picks</span>. Every round
               throws up a new group of players — choose one for your squad.
-              Changed format or difficulty on the home screen? Start a new draft
-              from <span className="text-cream">Draft your XI</span> so settings
-              apply. Choose wisely:{" "}
+              Changed format or difficulty? Tap{" "}
+              <span className="text-cream">Play</span> on the home screen and
+              start a new draft so settings apply. Choose wisely:{" "}
               <span className="text-cream">players won&apos;t repeat</span>{" "}
               across rounds.
             </p>

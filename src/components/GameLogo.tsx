@@ -6,7 +6,7 @@ const ICON = "/cricexpert11-icon.png";
 const HERO_WIDTH = 799;
 const HERO_HEIGHT = 601;
 
-type Variant = "full" | "header" | "mark" | "home";
+type Variant = "full" | "header" | "mark" | "home" | "modal";
 
 export function GameLogo({
   variant = "full",
@@ -38,6 +38,19 @@ export function GameLogo({
         width={256}
         height={256}
         className={`rounded-xl ${className}`}
+        priority={priority}
+      />
+    );
+  }
+
+  if (variant === "modal") {
+    return (
+      <Image
+        src={HERO}
+        alt={BRAND_NAME}
+        width={HERO_WIDTH}
+        height={HERO_HEIGHT}
+        className={`h-8 w-auto shrink-0 sm:h-9 ${className}`}
         priority={priority}
       />
     );

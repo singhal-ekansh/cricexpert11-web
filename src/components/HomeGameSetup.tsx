@@ -7,6 +7,7 @@ interface Props {
   mode: GameMode;
   onSettingsChange: (settings: GameSettings) => void;
   onModeChange: (mode: GameMode) => void;
+  inModal?: boolean;
 }
 
 function wicketSummary(
@@ -28,6 +29,7 @@ export function HomeGameSetup({
   mode,
   onSettingsChange,
   onModeChange,
+  inModal = false,
 }: Props) {
   const selectedFormat =
     formats.find((f) => f.id === settings.format) ?? formats[0];
@@ -35,9 +37,9 @@ export function HomeGameSetup({
     wicketModes.find((m) => m.id === settings.wicketMode) ?? wicketModes[0];
 
   return (
-    <div className="setup-panel space-y-4">
+    <div className={inModal ? "space-y-4" : "setup-panel space-y-4"}>
       <div className="space-y-2.5">
-        <p className="setup-label">Format &amp; conditions</p>
+        {!inModal && <p className="setup-label">Format &amp; conditions</p>}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
           {formats.length === 1 ? (
             <span className="format-badge sm:self-stretch">
