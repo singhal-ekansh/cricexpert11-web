@@ -214,8 +214,8 @@ export default function PlayPage() {
             lineup={lineup}
             playerMap={playerMap}
             onPick={handlePick}
-            onUndo={handleUndo}
-            canUndo={picks.length > 0 && !draftComplete}
+            onUndo={mode === "easy" ? handleUndo : undefined}
+            canUndo={mode === "easy" && picks.length > 0 && !draftComplete}
             onLineupChange={setLineup}
             onSubmit={handleSubmit}
             submitting={submitting}
