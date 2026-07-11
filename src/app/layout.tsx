@@ -34,7 +34,20 @@ export const metadata: Metadata = {
   openGraph: {
     title: `${BRAND_NAME} — ${BRAND_TAGLINE}`,
     description: BRAND_DESCRIPTION,
-    images: ["/cricexpert11-hero.png"],
+    images: [
+      {
+        url: "/cricexpert11-icon.png",
+        width: 512,
+        height: 512,
+        alt: BRAND_NAME,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: `${BRAND_NAME} — ${BRAND_TAGLINE}`,
+    description: BRAND_DESCRIPTION,
+    images: ["/cricexpert11-icon.png"],
   },
 };
 
