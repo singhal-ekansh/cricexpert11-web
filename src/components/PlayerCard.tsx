@@ -53,7 +53,8 @@ export function PlayerCardView({
             {player.full_name}
           </p>
           <p className="mt-0.5 text-xs text-cream-muted">
-            {player.country} · {player.name}
+            {player.country ? `${player.country} · ` : ""}
+            {player.name}
           </p>
         </div>
         <div className="flex flex-col items-end gap-1">

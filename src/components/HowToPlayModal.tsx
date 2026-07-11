@@ -74,7 +74,7 @@ export function HowToPlayModal({ open, onClose, creditBudget }: Props) {
         <div className="space-y-3 px-5 py-5">
           <Section title="Real data">
             <p>
-              Player ratings, credits, and strengths come from actual T20I match
+              Player ratings, credits, and strengths come from actual match
               stats — not guesswork.
             </p>
           </Section>

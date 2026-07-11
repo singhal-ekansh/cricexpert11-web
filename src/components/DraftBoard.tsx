@@ -265,7 +265,9 @@ export function DraftBoard({
         {activePlayer ? (
           <div className="rounded-xl border border-accent/40 bg-bg-card px-4 py-3 shadow-xl">
             <p className="font-medium text-cream">{activePlayer.full_name}</p>
-            <p className="text-xs text-cream-muted">{activePlayer.country}</p>
+            {activePlayer.country ? (
+              <p className="text-xs text-cream-muted">{activePlayer.country}</p>
+            ) : null}
           </div>
         ) : null}
       </DragOverlay>

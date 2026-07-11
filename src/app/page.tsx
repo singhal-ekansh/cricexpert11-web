@@ -126,7 +126,7 @@ export default function HomePage() {
             </div>
 
             <p className="mt-6 text-center text-xs text-cream-muted/70">
-              Real T20I stats · 11-round draft · Score your XI
+              Real match stats · 11-round draft · Score your XI
             </p>
           </div>
 
