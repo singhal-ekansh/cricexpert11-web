@@ -27,16 +27,12 @@ export const metadata: Metadata = {
   ),
   title: `${BRAND_NAME} — ${BRAND_TAGLINE}`,
   description: BRAND_DESCRIPTION,
-  icons: {
-    icon: "/cricexpert11-icon.png",
-    apple: "/cricexpert11-icon.png",
-  },
   openGraph: {
     title: `${BRAND_NAME} — ${BRAND_TAGLINE}`,
     description: BRAND_DESCRIPTION,
     images: [
       {
-        url: "/cricexpert11-icon.png",
+        url: "/cricexpert11-og-icon.png",
         width: 512,
         height: 512,
         alt: BRAND_NAME,
@@ -47,7 +43,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: `${BRAND_NAME} — ${BRAND_TAGLINE}`,
     description: BRAND_DESCRIPTION,
-    images: ["/cricexpert11-icon.png"],
+    images: ["/cricexpert11-og-icon.png"],
   },
 };
 

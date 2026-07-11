@@ -190,11 +190,13 @@ export interface ChallengeComparison {
   a: {
     user: ChallengeUser;
     team_score: number;
+    total_credits: number;
     breakdown: SlotBreakdown[];
   };
   b: {
     user: ChallengeUser;
     team_score: number;
+    total_credits: number;
     breakdown: SlotBreakdown[];
   };
   winner: ChallengeUser | null;

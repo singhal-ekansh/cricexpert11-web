@@ -104,12 +104,18 @@ export function ChallengeResultScreen({
               <p className="font-[family-name:var(--font-display)] text-4xl text-cream sm:text-5xl">
                 {a.team_score}
               </p>
+              <p className="mt-1 text-xs text-cream-muted sm:text-sm">
+                {a.total_credits} credits
+              </p>
             </div>
             <p className="text-base text-cream-muted sm:text-lg">vs</p>
             <div>
               <p className="text-xs text-cream-muted sm:text-sm">{nameB}</p>
               <p className="font-[family-name:var(--font-display)] text-4xl text-cream sm:text-5xl">
                 {b.team_score}
+              </p>
+              <p className="mt-1 text-xs text-cream-muted sm:text-sm">
+                {b.total_credits} credits
               </p>
             </div>
           </div>
