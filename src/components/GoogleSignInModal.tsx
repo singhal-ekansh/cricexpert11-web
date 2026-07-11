@@ -17,9 +17,11 @@ export function GoogleSignInModal({ open, onClose, onSuccess }: Props) {
   const { loginWithGoogle } = useAuth();
   const titleId = useId();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
+    setError(null);
     setLoading(false);
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !loading) onClose();
@@ -36,10 +38,16 @@ export function GoogleSignInModal({ open, onClose, onSuccess }: Props) {
 
   const handleCredential = async (credential: string) => {
     setLoading(true);
+    setError(null);
     try {
       await loginWithGoogle(credential);
       onSuccess();
-    } catch {
+    } catch (err) {
+      const message =
+        err instanceof Error && err.message
+          ? err.message
+          : "Sign-in failed. Please try again.";
+      setError(message);
       setLoading(false);
     }
   };
@@ -81,6 +89,15 @@ export function GoogleSignInModal({ open, onClose, onSuccess }: Props) {
             Sign in
           </h2>
 
+          {error && (
+            <div
+              role="alert"
+              className="mt-4 w-full rounded-lg border border-crimson/40 bg-crimson/10 px-3 py-2.5 text-sm text-crimson"
+            >
+              {error}
+            </div>
+          )}
+
           <div className="relative mt-6 w-full">
             {loading && (
               <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-[#12101a]/80">
@@ -97,6 +114,7 @@ export function GoogleSignInModal({ open, onClose, onSuccess }: Props) {
                   }}
                   onError={() => {
                     setLoading(false);
+                    setError("Sign-in was cancelled.");
                   }}
                   theme="outline"
                   size="large"

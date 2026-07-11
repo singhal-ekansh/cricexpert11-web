@@ -6,7 +6,6 @@ import { useAuth } from "@/components/AuthProvider";
 import { GameLogo } from "@/components/GameLogo";
 import { GameSetupModal } from "@/components/GameSetupModal";
 import { GoogleSignInModal } from "@/components/GoogleSignInModal";
-import { HomeHeader } from "@/components/HomeHeader";
 import { HomeSceneBackground } from "@/components/HomeSceneBackground";
 import { HowToPlayModal } from "@/components/HowToPlayModal";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -92,8 +91,6 @@ export default function HomePage() {
     <>
       <HomeSceneBackground />
       <main className="relative z-10 flex min-h-screen flex-col">
-        <HomeHeader />
-
         <div className="flex flex-1 flex-col items-center justify-center px-4 py-8 sm:py-12">
           <div className="hero-card hero-card-home animate-fade-up w-full max-w-lg rounded-2xl px-5 py-8 sm:px-10 sm:py-10">
             <GameLogo variant="home" className="mx-auto" priority />
