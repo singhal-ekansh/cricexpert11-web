@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { AddToHomeScreen } from "@/components/AddToHomeScreen";
 import { GameLogo } from "@/components/GameLogo";
 import { GameSetupModal } from "@/components/GameSetupModal";
 import { GoogleSignInModal } from "@/components/GoogleSignInModal";
@@ -127,6 +128,7 @@ export default function HomePage() {
               >
                 How to play
               </button>
+              <AddToHomeScreen />
             </div>
 
             <p className="mt-8 text-center text-[10px] font-medium tracking-[0.16em] text-cream-muted/60 uppercase">
