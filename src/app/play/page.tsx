@@ -34,6 +34,7 @@ import {
   saveDraftState,
   type SavedDraftState,
 } from "@/lib/storage";
+import { scrollToTop } from "@/lib/scroll";
 import type {
   BestScoreRecord,
   ChallengeComparison,
@@ -249,6 +250,10 @@ function PlayPageContent() {
     setSettings(savedSettings);
     setBest(getBestScore(savedMode, savedSettings));
   }, [challengeId]);
+
+  useEffect(() => {
+    scrollToTop();
+  }, [phase, comparison, mySubmission, comparisonLoading]);
 
   const handleSelectPlayer = useCallback(
     async (userId: string, isYou: boolean) => {
