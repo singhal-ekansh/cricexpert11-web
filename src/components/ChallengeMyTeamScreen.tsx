@@ -39,8 +39,8 @@ export function ChallengeMyTeamScreen({
   const shareable = isChallengeShareable(expiresAt);
 
   return (
-    <div className="animate-fade-up mx-auto max-w-2xl">
-      <div className="hero-card rounded-2xl px-5 py-6 sm:px-8 sm:py-8">
+    <div className="animate-fade-up mx-auto w-full max-w-2xl">
+      <div className="hero-card rounded-2xl px-3 py-5 sm:px-8 sm:py-8">
         {onBack && (
           <button
             type="button"
@@ -109,25 +109,25 @@ export function ChallengeMyTeamScreen({
           />
         )}
 
-        <div className="mt-6 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center sm:justify-center">
+        <div className="mt-5 flex flex-col gap-2.5 sm:mt-6 sm:flex-row sm:items-center sm:justify-center sm:gap-3">
           {onBack && (
             <button
               type="button"
               onClick={onBack}
-              className="btn-gold rounded-xl px-8 py-3 text-sm"
+              className="btn-gold w-full rounded-xl px-8 py-3 text-sm sm:w-auto"
             >
               Leaderboard
             </button>
           )}
           <Link
             href="/profile"
-            className="btn-outline rounded-xl px-8 py-3 text-center text-sm"
+            className="btn-outline w-full rounded-xl px-8 py-3 text-center text-sm sm:w-auto"
           >
-            My profile
+            Back to challenges
           </Link>
           <Link
             href="/"
-            className="btn-outline rounded-xl px-8 py-3 text-center text-sm"
+            className="btn-outline w-full rounded-xl px-8 py-3 text-center text-sm sm:w-auto"
           >
             Home
           </Link>

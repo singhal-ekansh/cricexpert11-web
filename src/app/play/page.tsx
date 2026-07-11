@@ -405,19 +405,22 @@ function PlayPageContent() {
   return (
     <main className="relative z-10 min-h-screen">
       <header className="sticky top-0 z-20 border-b border-border/80 bg-[#0c0a10]/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-          <Link href="/" className="flex items-center transition-opacity hover:opacity-90">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3">
+          <Link href="/" className="flex shrink-0 items-center transition-opacity hover:opacity-90">
             <GameLogo variant="header" priority />
           </Link>
-          <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-4">
+          <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-4">
             <button
               type="button"
               onClick={() => setShowHowTo(true)}
-              className="btn-outline rounded-lg px-3 py-1.5 text-[11px]"
+              className={[
+                "btn-outline rounded-lg px-2.5 py-1 text-[10px] sm:px-3 sm:py-1.5 sm:text-[11px]",
+                challengeId ? "hidden sm:inline-flex" : "",
+              ].join(" ")}
             >
-              How to play
+              Rules
             </button>
-            {user && (
+            {user && !challengeId && (
               <Link href="/profile" className="text-xs text-gold hover:underline">
                 My profile
               </Link>
@@ -435,14 +438,21 @@ function PlayPageContent() {
                 {game.format_label} · {game.wicket_mode_label}
               </span>
             )}
-            <span className="rounded border border-border px-2 py-0.5 text-[10px] font-bold tracking-wider text-gold uppercase">
-              {mode}
-            </span>
+            {!challengeId && (
+              <span className="rounded border border-border px-2 py-0.5 text-[10px] font-bold tracking-wider text-gold uppercase">
+                {mode}
+              </span>
+            )}
           </div>
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-4 py-6">
+      <div
+        className={[
+          "mx-auto py-4 sm:py-6",
+          challengeId ? "max-w-2xl px-3 sm:px-4" : "max-w-7xl px-3 sm:px-4",
+        ].join(" ")}
+      >
         {challengeMeta && phase === "draft" && challengeMeta.creator_score != null && (
           <div className="mb-4 rounded-lg border border-gold/30 bg-gold/5 px-4 py-2.5 text-center text-xs text-cream-muted">
             Beat{" "}

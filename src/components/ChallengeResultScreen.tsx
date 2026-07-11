@@ -41,6 +41,24 @@ function columnLabel(
   return userDisplayName(displayName, "Player");
 }
 
+function PlayerCell({
+  player,
+}: {
+  player: ChallengeComparison["slots"][number]["a"];
+}) {
+  if (!player) {
+    return <span className="text-cream-muted/40">—</span>;
+  }
+  return (
+    <>
+      <p className="text-sm font-medium leading-snug text-cream">{player.full_name}</p>
+      <p className="mt-0.5 text-xs text-cream-muted">
+        {formatRole(player.primary_role)} · {player.slot_score}
+      </p>
+    </>
+  );
+}
+
 export function ChallengeResultScreen({
   comparison,
   viewerUserId,
@@ -59,37 +77,37 @@ export function ChallengeResultScreen({
   const nameB = columnLabel(b.user.id, b.user.display_name, viewerUserId);
 
   return (
-    <div className="animate-fade-up mx-auto max-w-3xl">
-      <div className="hero-card rounded-2xl px-5 py-6 sm:px-8 sm:py-8">
+    <div className="animate-fade-up mx-auto w-full max-w-3xl">
+      <div className="hero-card rounded-2xl px-3 py-5 sm:px-8 sm:py-8">
         {onBack && (
           <button
             type="button"
             onClick={onBack}
-            className="mb-4 text-xs text-cream-muted transition-colors hover:text-gold"
+            className="mb-3 text-xs text-cream-muted transition-colors hover:text-gold sm:mb-4"
           >
             ← Back to leaderboard
           </button>
         )}
 
         <div className="text-center">
-          <p className="text-[10px] font-bold tracking-[0.3em] text-gold uppercase">
+          <p className="text-[10px] font-bold tracking-[0.2em] text-gold uppercase sm:tracking-[0.3em]">
             {subjectName}&apos;s lineup
           </p>
           <p
-            className={`mt-3 text-sm font-bold tracking-[0.2em] uppercase ${outcomeClass(outcome)}`}
+            className={`mt-2 text-xs font-bold tracking-wide uppercase sm:mt-3 sm:text-sm sm:tracking-[0.2em] ${outcomeClass(outcome)}`}
           >
             {outcomeLabel(outcome)} vs {subjectName}
           </p>
-          <div className="mt-4 flex items-center justify-center gap-4 sm:gap-8">
+          <div className="mt-4 flex items-center justify-center gap-5 sm:gap-8">
             <div>
-              <p className="text-sm text-cream-muted">{nameA}</p>
+              <p className="text-xs text-cream-muted sm:text-sm">{nameA}</p>
               <p className="font-[family-name:var(--font-display)] text-4xl text-cream sm:text-5xl">
                 {a.team_score}
               </p>
             </div>
-            <p className="text-lg text-cream-muted">vs</p>
+            <p className="text-base text-cream-muted sm:text-lg">vs</p>
             <div>
-              <p className="text-sm text-cream-muted">{nameB}</p>
+              <p className="text-xs text-cream-muted sm:text-sm">{nameB}</p>
               <p className="font-[family-name:var(--font-display)] text-4xl text-cream sm:text-5xl">
                 {b.team_score}
               </p>
@@ -97,13 +115,42 @@ export function ChallengeResultScreen({
           </div>
         </div>
 
-        <div className="mt-6 overflow-hidden rounded-xl border border-border sm:mt-8">
-          <table className="w-full text-sm">
+        {/* Mobile: stacked slot cards */}
+        <div className="mt-5 space-y-2 sm:hidden">
+          {comparison.slots.map((row) => (
+            <div
+              key={row.slot}
+              className="rounded-xl border border-border/70 bg-bg-card/40 px-3 py-2.5"
+            >
+              <p className="text-[10px] font-bold tracking-wider text-gold uppercase">
+                #{row.slot}
+              </p>
+              <div className="mt-2 grid grid-cols-2 gap-3">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold tracking-wide text-cream-muted uppercase">
+                    {nameA}
+                  </p>
+                  <div className="mt-1">{row.a ? <PlayerCell player={row.a} /> : <span className="text-cream-muted/40">—</span>}</div>
+                </div>
+                <div className="min-w-0 border-l border-border/50 pl-3">
+                  <p className="text-[10px] font-semibold tracking-wide text-cream-muted uppercase">
+                    {nameB}
+                  </p>
+                  <div className="mt-1">{row.b ? <PlayerCell player={row.b} /> : <span className="text-cream-muted/40">—</span>}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop: comparison table */}
+        <div className="mt-6 hidden overflow-x-auto rounded-xl border border-border sm:mt-8 sm:block">
+          <table className="w-full min-w-[32rem] text-sm">
             <thead>
               <tr className="border-b border-border bg-bg-panel text-left text-[10px] tracking-widest text-cream-muted uppercase">
-                <th className="w-10 px-2 py-2">#</th>
-                <th className="px-2 py-2">{nameA}</th>
-                <th className="px-2 py-2">{nameB}</th>
+                <th className="w-10 px-3 py-2.5">#</th>
+                <th className="px-3 py-2.5">{nameA}</th>
+                <th className="px-3 py-2.5">{nameB}</th>
               </tr>
             </thead>
             <tbody>
@@ -112,34 +159,14 @@ export function ChallengeResultScreen({
                   key={row.slot}
                   className="border-b border-border/50 bg-bg-card/40 last:border-0"
                 >
-                  <td className="px-2 py-2 font-[family-name:var(--font-mono)] text-xs text-gold">
+                  <td className="px-3 py-2.5 font-[family-name:var(--font-mono)] text-xs text-gold">
                     {row.slot}
                   </td>
-                  <td className="px-2 py-2">
-                    {row.a ? (
-                      <p className="truncate text-[13px] text-cream">
-                        <span className="font-medium">{row.a.full_name}</span>
-                        <span className="text-cream-muted">
-                          {" "}
-                          · {formatRole(row.a.primary_role)} · {row.a.slot_score}
-                        </span>
-                      </p>
-                    ) : (
-                      <span className="text-cream-muted/40">—</span>
-                    )}
+                  <td className="px-3 py-2.5">
+                    {row.a ? <PlayerCell player={row.a} /> : <span className="text-cream-muted/40">—</span>}
                   </td>
-                  <td className="px-2 py-2">
-                    {row.b ? (
-                      <p className="truncate text-[13px] text-cream">
-                        <span className="font-medium">{row.b.full_name}</span>
-                        <span className="text-cream-muted">
-                          {" "}
-                          · {formatRole(row.b.primary_role)} · {row.b.slot_score}
-                        </span>
-                      </p>
-                    ) : (
-                      <span className="text-cream-muted/40">—</span>
-                    )}
+                  <td className="px-3 py-2.5">
+                    {row.b ? <PlayerCell player={row.b} /> : <span className="text-cream-muted/40">—</span>}
                   </td>
                 </tr>
               ))}
@@ -147,34 +174,34 @@ export function ChallengeResultScreen({
           </table>
         </div>
 
-        <div className="mt-6 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center sm:justify-center">
+        <div className="mt-5 flex flex-col gap-2.5 sm:mt-6 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-3">
           {onBack && (
             <button
               type="button"
               onClick={onBack}
-              className="btn-gold rounded-xl px-8 py-3 text-sm"
+              className="btn-gold w-full rounded-xl px-8 py-3 text-sm sm:w-auto"
             >
               Leaderboard
             </button>
           )}
+          <Link
+            href="/profile"
+            className="btn-outline w-full rounded-xl px-8 py-3 text-center text-sm sm:w-auto"
+          >
+            Back to challenges
+          </Link>
           {onPlayAgain && (
             <button
               type="button"
               onClick={onPlayAgain}
-              className="btn-outline rounded-xl px-8 py-3 text-sm"
+              className="btn-outline w-full rounded-xl px-8 py-3 text-sm sm:w-auto"
             >
               Draft again
             </button>
           )}
           <Link
-            href="/profile"
-            className="btn-outline rounded-xl px-8 py-3 text-center text-sm"
-          >
-            My profile
-          </Link>
-          <Link
             href="/"
-            className="btn-outline rounded-xl px-8 py-3 text-center text-sm"
+            className="btn-outline w-full rounded-xl px-8 py-3 text-center text-sm sm:w-auto"
           >
             Home
           </Link>

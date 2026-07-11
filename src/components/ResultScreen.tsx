@@ -188,7 +188,7 @@ export function ResultScreen({
               href="/profile"
               className="btn-outline rounded-xl px-10 py-3.5 text-center text-sm sm:min-w-[10rem] sm:py-4"
             >
-              My profile
+              Back to challenges
             </Link>
           )}
         </div>

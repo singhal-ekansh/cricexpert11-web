@@ -122,6 +122,14 @@ export default function ChallengePage() {
             <Link href="/" className="btn-outline mt-6 inline-block rounded-xl px-8 py-3 text-sm">
               Play a draft
             </Link>
+            {user && (
+              <Link
+                href="/profile"
+                className="btn-outline mt-3 inline-block rounded-xl px-8 py-3 text-sm"
+              >
+                Back to challenges
+              </Link>
+            )}
           </div>
         )}
 
@@ -196,6 +204,15 @@ export default function ChallengePage() {
 
             {!isChallengeShareable(challenge.expires_at) && (
               <p className="mt-6 text-xs text-cream-muted">This challenge has expired.</p>
+            )}
+
+            {user && (
+              <Link
+                href="/profile"
+                className="btn-outline mt-6 inline-block rounded-xl px-8 py-3 text-sm"
+              >
+                Back to challenges
+              </Link>
             )}
           </div>
         )}
