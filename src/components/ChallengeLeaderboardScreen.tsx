@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { ChallengeLeaderboard } from "@/lib/types";
 import { challengePageUrl, isChallengeShareable } from "@/lib/challenge";
+import { rankWithPlayerCount } from "@/lib/rank";
 import { userDisplayName } from "@/lib/user";
 import { ChallengeSharePanel } from "./ChallengeSharePanel";
 import { UserAvatar } from "./UserAvatar";
@@ -10,13 +11,6 @@ import { UserAvatar } from "./UserAvatar";
 interface Props {
   leaderboard: ChallengeLeaderboard;
   onSelectPlayer: (userId: string, isYou: boolean) => void;
-}
-
-function rankLabel(rank: number): string {
-  if (rank === 1) return "1st";
-  if (rank === 2) return "2nd";
-  if (rank === 3) return "3rd";
-  return `#${rank}`;
 }
 
 export function ChallengeLeaderboardScreen({
@@ -37,9 +31,9 @@ export function ChallengeLeaderboardScreen({
           <p className="mt-2 text-sm text-cream-muted">
             {player_count} player{player_count === 1 ? "" : "s"} · tap to compare
           </p>
-          {your_rank != null && (
+          {your_rank != null && player_count > 0 && (
             <p className="mt-3 text-xl font-semibold text-gold">
-              You finished {rankLabel(your_rank)}
+              You finished {rankWithPlayerCount(your_rank, player_count)}
             </p>
           )}
         </div>

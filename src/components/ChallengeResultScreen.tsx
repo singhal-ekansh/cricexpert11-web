@@ -3,16 +3,11 @@
 import Link from "next/link";
 import type { ChallengeComparison } from "@/lib/types";
 import { userDisplayName } from "@/lib/user";
-import { ScorePenaltiesSummary } from "./ScorePenaltiesSummary";
-
-function formatRole(role: string): string {
-  if (role === "Wicketkeeper-batsman") return "WK";
-  if (role === "All-rounder") return "AR";
-  if (role === "Batsman") return "BAT";
-  if (role === "Bowler") return "BWL";
-  if (role === "Wicketkeeper") return "WK";
-  return role;
-}
+import { penaltyLines } from "./ScorePenaltiesSummary";
+import {
+  ComparisonPenaltyCell,
+  ComparisonPlayerCell,
+} from "./ResultBreakdownTable";
 
 interface Props {
   comparison: ChallengeComparison;
@@ -51,12 +46,11 @@ function PlayerCell({
     return <span className="text-cream-muted/40">—</span>;
   }
   return (
-    <>
-      <p className="text-sm font-medium leading-snug text-cream">{player.full_name}</p>
-      <p className="mt-0.5 text-xs text-cream-muted">
-        {formatRole(player.primary_role)} · {player.slot_score}
-      </p>
-    </>
+    <ComparisonPlayerCell
+      fullName={player.full_name}
+      primaryRole={player.primary_role}
+      slotScore={player.slot_score}
+    />
   );
 }
 
@@ -76,6 +70,23 @@ export function ChallengeResultScreen({
   const subjectName = userDisplayName(subject.user.display_name, "Player");
   const nameA = columnLabel(a.user.id, a.user.display_name, viewerUserId);
   const nameB = columnLabel(b.user.id, b.user.display_name, viewerUserId);
+  const sideA = {
+    wk_penalty: a.wk_penalty,
+    credit_penalty: a.credit_penalty,
+    credits_over_budget: a.credits_over_budget,
+    credit_budget: a.credit_budget,
+    total_credits: a.total_credits,
+  };
+  const sideB = {
+    wk_penalty: b.wk_penalty,
+    credit_penalty: b.credit_penalty,
+    credits_over_budget: b.credits_over_budget,
+    credit_budget: b.credit_budget,
+    total_credits: b.total_credits,
+  };
+  const penaltiesA = penaltyLines(sideA);
+  const penaltiesB = penaltyLines(sideB);
+  const penaltyRowCount = Math.max(penaltiesA.length, penaltiesB.length);
 
   return (
     <div className="animate-fade-up mx-auto w-full max-w-3xl">
@@ -108,14 +119,6 @@ export function ChallengeResultScreen({
               <p className="mt-1 text-xs text-cream-muted sm:text-sm">
                 {a.total_credits} credits
               </p>
-              <ScorePenaltiesSummary
-                wk_penalty={a.wk_penalty}
-                credit_penalty={a.credit_penalty}
-                credits_over_budget={a.credits_over_budget}
-                credit_budget={a.credit_budget}
-                total_credits={a.total_credits}
-                compact
-              />
             </div>
             <p className="text-base text-cream-muted sm:text-lg">vs</p>
             <div>
@@ -126,14 +129,6 @@ export function ChallengeResultScreen({
               <p className="mt-1 text-xs text-cream-muted sm:text-sm">
                 {b.total_credits} credits
               </p>
-              <ScorePenaltiesSummary
-                wk_penalty={b.wk_penalty}
-                credit_penalty={b.credit_penalty}
-                credits_over_budget={b.credits_over_budget}
-                credit_budget={b.credit_budget}
-                total_credits={b.total_credits}
-                compact
-              />
             </div>
           </div>
         </div>
@@ -164,6 +159,53 @@ export function ChallengeResultScreen({
               </div>
             </div>
           ))}
+          {penaltyRowCount > 0 &&
+            Array.from({ length: penaltyRowCount }, (_, index) => {
+              const lineA = penaltiesA[index];
+              const lineB = penaltiesB[index];
+              return (
+                <div
+                  key={`penalty-mobile-${index}`}
+                  className="rounded-xl border border-border/70 bg-bg-card/40 px-3 py-2.5"
+                >
+                  <p className="text-xs font-medium text-cream-muted">
+                    #{12 + index}
+                  </p>
+                  <div className="mt-2 grid grid-cols-2 gap-3">
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-cream-muted">
+                        {nameA}
+                      </p>
+                      <div className="mt-1">
+                        {lineA ? (
+                          <ComparisonPenaltyCell
+                            label={lineA.label}
+                            value={lineA.value}
+                          />
+                        ) : (
+                          <span className="text-cream-muted/40">—</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="min-w-0 border-l border-border/50 pl-3">
+                      <p className="text-xs font-medium text-cream-muted">
+                        {nameB}
+                      </p>
+                      <div className="mt-1">
+                        {lineB ? (
+                          <ComparisonPenaltyCell
+                            label={lineB.label}
+                            value={lineB.value}
+                          />
+                        ) : (
+                          <span className="text-cream-muted/40">—</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
         </div>
 
         {/* Desktop: comparison table */}
@@ -180,7 +222,7 @@ export function ChallengeResultScreen({
               {comparison.slots.map((row) => (
                 <tr
                   key={row.slot}
-                  className="border-b border-border/50 bg-bg-card/40 last:border-0"
+                  className="border-b border-border/50 bg-bg-card/40"
                 >
                   <td className="px-3 py-2.5 font-[family-name:var(--font-mono)] text-xs text-cream-muted">
                     {row.slot}
@@ -193,6 +235,41 @@ export function ChallengeResultScreen({
                   </td>
                 </tr>
               ))}
+              {penaltyRowCount > 0 &&
+                Array.from({ length: penaltyRowCount }, (_, index) => {
+                  const lineA = penaltiesA[index];
+                  const lineB = penaltiesB[index];
+                  return (
+                    <tr
+                      key={`penalty-desktop-${index}`}
+                      className="border-b border-border/50 bg-bg-card/40"
+                    >
+                      <td className="px-3 py-2.5 font-[family-name:var(--font-mono)] text-xs text-cream-muted">
+                        {12 + index}
+                      </td>
+                      <td className="px-3 py-2.5">
+                        {lineA ? (
+                          <ComparisonPenaltyCell
+                            label={lineA.label}
+                            value={lineA.value}
+                          />
+                        ) : (
+                          <span className="text-cream-muted/40">—</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2.5">
+                        {lineB ? (
+                          <ComparisonPenaltyCell
+                            label={lineB.label}
+                            value={lineB.value}
+                          />
+                        ) : (
+                          <span className="text-cream-muted/40">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         </div>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChallengeShareButton } from "@/components/ChallengeShareButton";
 import type { ChallengeSummary } from "@/lib/types";
 import { challengePageUrl, isChallengeShareable } from "@/lib/challenge";
+import { rankWithPlayerCount } from "@/lib/rank";
 import { userDisplayName } from "@/lib/user";
 
 type Tab = "live" | "completed";
@@ -26,13 +27,6 @@ function relativeDate(iso: string): string {
   if (days === 1) return "Yesterday";
   if (days < 7) return `${days}d ago`;
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-}
-
-function rankLabel(rank: number): string {
-  if (rank === 1) return "1st";
-  if (rank === 2) return "2nd";
-  if (rank === 3) return "3rd";
-  return `#${rank}`;
 }
 
 function StatusPill({ tab }: { tab: Tab }) {
@@ -72,7 +66,7 @@ export function ProfileChallengeCard({
     item.your_rank != null &&
     item.player_count &&
     item.player_count >= 2
-      ? `${rankLabel(item.your_rank)} of ${item.player_count}`
+      ? rankWithPlayerCount(item.your_rank, item.player_count)
       : null;
   const shareable = isChallengeShareable(item.expires_at);
   const shareScore = yourScore ?? item.creator_score;
