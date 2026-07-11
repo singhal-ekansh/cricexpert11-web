@@ -7,10 +7,22 @@ interface StoredAuth {
   user: AuthUser;
 }
 
-export function getStoredAuth(): StoredAuth | null {
+function readRawAuth(): string | null {
   if (typeof window === "undefined") return null;
+  const fromLocal = localStorage.getItem(AUTH_KEY);
+  if (fromLocal) return fromLocal;
+  const fromSession = sessionStorage.getItem(AUTH_KEY);
+  if (fromSession) {
+    localStorage.setItem(AUTH_KEY, fromSession);
+    sessionStorage.removeItem(AUTH_KEY);
+    return fromSession;
+  }
+  return null;
+}
+
+export function getStoredAuth(): StoredAuth | null {
   try {
-    const raw = sessionStorage.getItem(AUTH_KEY);
+    const raw = readRawAuth();
     return raw ? (JSON.parse(raw) as StoredAuth) : null;
   } catch {
     return null;
@@ -18,7 +30,7 @@ export function getStoredAuth(): StoredAuth | null {
 }
 
 export function saveAuth(response: AuthResponse): void {
-  sessionStorage.setItem(
+  localStorage.setItem(
     AUTH_KEY,
     JSON.stringify({
       access_token: response.access_token,
@@ -28,6 +40,7 @@ export function saveAuth(response: AuthResponse): void {
 }
 
 export function clearAuth(): void {
+  localStorage.removeItem(AUTH_KEY);
   sessionStorage.removeItem(AUTH_KEY);
 }
 

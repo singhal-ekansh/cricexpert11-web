@@ -18,6 +18,22 @@ import type {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
+export class ApiError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
+let onUnauthorized: (() => void) | null = null;
+
+export function setUnauthorizedHandler(handler: (() => void) | null): void {
+  onUnauthorized = handler;
+}
+
 function authHeaders(): Record<string, string> {
   const token = getAccessToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
@@ -42,13 +58,16 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     const detail = body.detail;
-    throw new Error(
+    const message =
       typeof detail === "string"
         ? detail
         : Array.isArray(detail)
           ? detail.map((d: { msg?: string }) => d.msg).join(", ")
-          : `API error ${res.status}`,
-    );
+          : `API error ${res.status}`;
+    if (res.status === 401) {
+      onUnauthorized?.();
+    }
+    throw new ApiError(message, res.status);
   }
   return res.json() as Promise<T>;
 }

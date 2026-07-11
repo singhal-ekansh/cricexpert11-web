@@ -57,10 +57,10 @@ export default function PrivacyPage() {
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-cream">Storage and retention</h2>
         <p>
-          Your sign-in session is kept in your browser for the current tab
-          session. Account and challenge data is stored in our database while
-          your account exists. Challenge links expire after 24 hours; associated
-          data may be removed after expiry.
+          Your sign-in session is kept in your browser until you sign out or
+          your session expires. Account and challenge data is stored in our
+          database while your account exists. Challenge links expire after 24
+          hours; associated data may be removed after expiry.
         </p>
       </section>
 

@@ -8,7 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { fetchMe, loginWithGoogle as apiLogin } from "@/lib/api";
+import { ApiError, fetchMe, loginWithGoogle as apiLogin, setUnauthorizedHandler } from "@/lib/api";
 import {
   clearAuth,
   getCurrentUser,
@@ -31,6 +31,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const logout = useCallback(() => {
+    clearAuth();
+    setUser(null);
+  }, []);
+
   const refreshUser = useCallback(async () => {
     const stored = getStoredAuth();
     if (!stored) {
@@ -40,11 +45,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const me = await fetchMe();
       setUser(me);
-    } catch {
-      clearAuth();
-      setUser(null);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        clearAuth();
+        setUser(null);
+      }
     }
   }, []);
+
+  useEffect(() => {
+    setUnauthorizedHandler(logout);
+    return () => setUnauthorizedHandler(null);
+  }, [logout]);
 
   useEffect(() => {
     const stored = getCurrentUser();
@@ -60,11 +72,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const response = await apiLogin(credential);
     saveAuth(response);
     setUser(response.user);
-  }, []);
-
-  const logout = useCallback(() => {
-    clearAuth();
-    setUser(null);
   }, []);
 
   const value = useMemo(
