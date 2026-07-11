@@ -46,33 +46,32 @@ export function GameSetupModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-labelledby="game-setup-title"
     >
       <button
         type="button"
-        className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+        className="modal-overlay absolute inset-0"
         onClick={onClose}
         aria-label="Close"
       />
-      <div className="hero-card relative w-full max-w-md rounded-2xl">
-        <div className="relative flex items-center gap-3 border-b border-border px-5 py-4 pr-12">
-          <GameLogo variant="modal" />
-          <h2
-            id="game-setup-title"
-            className="font-[family-name:var(--font-display)] text-xl text-cream"
-          >
-            Format &amp; conditions
-          </h2>
+      <div className="hero-card relative w-full max-w-md rounded-t-2xl sm:rounded-2xl">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+          <div className="flex items-center gap-3">
+            <GameLogo variant="modal" />
+            <h2 id="game-setup-title" className="text-lg font-semibold text-cream">
+              Game setup
+            </h2>
+          </div>
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-3.5 right-4 rounded-lg border border-border px-2.5 py-1 text-sm text-cream-muted transition-colors hover:border-gold/40 hover:text-cream"
+            className="btn-ghost rounded-lg px-2 py-1 text-lg leading-none"
             aria-label="Close"
           >
-            ✕
+            ×
           </button>
         </div>
 
@@ -88,9 +87,7 @@ export function GameSetupModal({
               inModal
             />
           ) : (
-            <p className="text-center text-sm text-cream-muted">
-              Loading options…
-            </p>
+            <p className="text-sm text-cream-muted">Loading options…</p>
           )}
         </div>
 
@@ -99,9 +96,9 @@ export function GameSetupModal({
             <Link
               href="/play"
               onClick={onClose}
-              className="btn-gold block w-full rounded-xl px-6 py-3.5 text-center text-sm tracking-[0.1em]"
+              className="btn-gold block w-full rounded-xl px-6 py-3.5 text-center text-sm font-semibold"
             >
-              Draft your XI
+              Start draft
             </Link>
           ) : (
             <button
@@ -109,7 +106,7 @@ export function GameSetupModal({
               disabled
               className="btn-gold w-full rounded-xl px-6 py-3.5 text-sm opacity-50"
             >
-              Draft your XI
+              Start draft
             </button>
           )}
         </div>

@@ -61,7 +61,7 @@ export function GoogleSignInModal({ open, onClose, onSuccess }: Props) {
     >
       <button
         type="button"
-        className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+        className="modal-overlay absolute inset-0"
         onClick={loading ? undefined : onClose}
         aria-label="Close"
       />
@@ -100,8 +100,8 @@ export function GoogleSignInModal({ open, onClose, onSuccess }: Props) {
 
           <div className="relative mt-6 w-full">
             {loading && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-[#12101a]/80">
-                <span className="h-5 w-5 animate-spin rounded-full border-2 border-gold border-t-transparent" />
+              <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-bg-card/80">
+                <span className="h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
               </div>
             )}
 

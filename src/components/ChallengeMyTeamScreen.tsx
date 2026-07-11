@@ -5,6 +5,7 @@ import type { ChallengeMySubmission } from "@/lib/types";
 import { challengePageUrl, isChallengeShareable } from "@/lib/challenge";
 import { userDisplayName } from "@/lib/user";
 import { ChallengeSharePanel } from "./ChallengeSharePanel";
+import { ScorePenaltiesSummary } from "./ScorePenaltiesSummary";
 
 function formatRole(role: string): string {
   if (role === "Wicketkeeper-batsman") return "WK";
@@ -45,28 +46,34 @@ export function ChallengeMyTeamScreen({
           <button
             type="button"
             onClick={onBack}
-            className="mb-4 text-xs text-cream-muted transition-colors hover:text-gold"
+            className="mb-4 text-sm text-cream-muted transition-colors hover:text-cream"
           >
             ← Back to leaderboard
           </button>
         )}
 
         <div className="text-center">
-          <p className="text-[10px] font-bold tracking-[0.3em] text-gold uppercase">
-            Your team
-          </p>
+          <p className="text-sm font-medium text-cream">Your team</p>
           <p className="mt-2 text-sm text-cream-muted">{name}</p>
           {submission.rank != null && submission.player_count > 0 && (
             <p className="mt-2 text-xs text-cream-muted">
               {rankLabel(submission.rank)} of {submission.player_count}
             </p>
           )}
-          <p className="mt-3 font-[family-name:var(--font-display)] text-5xl text-gold-bright sm:text-6xl">
+          <p className="mt-3 font-[family-name:var(--font-display)] text-5xl text-gold sm:text-6xl">
             {submission.team_score}
           </p>
           <p className="mt-2 text-sm text-cream-muted">
             {submission.total_credits} credits used
           </p>
+
+          <ScorePenaltiesSummary
+            wk_penalty={submission.wk_penalty}
+            credit_penalty={submission.credit_penalty}
+            credits_over_budget={submission.credits_over_budget}
+            credit_budget={submission.credit_budget}
+            total_credits={submission.total_credits}
+          />
         </div>
 
         <div className="mt-6 overflow-hidden rounded-xl border border-border sm:mt-8">

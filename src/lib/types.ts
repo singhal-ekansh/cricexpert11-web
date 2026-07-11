@@ -191,12 +191,22 @@ export interface ChallengeComparison {
     user: ChallengeUser;
     team_score: number;
     total_credits: number;
+    raw_score: number;
+    wk_penalty: number;
+    credit_penalty: number;
+    credits_over_budget: number;
+    credit_budget: number;
     breakdown: SlotBreakdown[];
   };
   b: {
     user: ChallengeUser;
     team_score: number;
     total_credits: number;
+    raw_score: number;
+    wk_penalty: number;
+    credit_penalty: number;
+    credits_over_budget: number;
+    credit_budget: number;
     breakdown: SlotBreakdown[];
   };
   winner: ChallengeUser | null;
@@ -234,6 +244,11 @@ export interface ChallengeMySubmission {
   user: ChallengeUser;
   team_score: number;
   total_credits: number;
+  raw_score: number;
+  wk_penalty: number;
+  credit_penalty: number;
+  credits_over_budget: number;
+  credit_budget: number;
   breakdown: SlotBreakdown[];
   rank: number | null;
   player_count: number;

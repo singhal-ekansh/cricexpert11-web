@@ -20,19 +20,18 @@ export function DraftSlotRow({ slot, player, showStats = true }: DraftSlotRowPro
     <div
       ref={setNodeRef}
       className={[
-        "rounded-md border transition-colors",
-        isOver ? "border-gold ring-1 ring-gold/40" : "border-transparent",
-        slot % 2 === 0 ? "bg-[#1a2e1a]/50" : "bg-transparent",
+        "rounded-lg transition-colors",
+        isOver ? "ring-1 ring-accent/50" : "",
       ].join(" ")}
     >
       {player ? (
         <DraggablePlayer slot={slot} player={player} showStats={showStats} />
       ) : (
-        <div className="flex items-center gap-3 border border-[#2d4a2d]/60 bg-[#1a2e1a] px-3 py-2.5">
-          <span className="w-5 shrink-0 text-center font-[family-name:var(--font-mono)] text-sm text-cream-muted">
+        <div className="draft-slot-empty flex items-center gap-3 rounded-lg px-3 py-2.5">
+          <span className="w-5 shrink-0 text-center font-[family-name:var(--font-mono)] text-xs text-cream-muted">
             {slot}
           </span>
-          <p className="text-sm text-cream-muted/50">Empty slot</p>
+          <p className="text-sm text-cream-muted/50">Empty</p>
         </div>
       )}
     </div>
@@ -66,22 +65,22 @@ function DraggablePlayer({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-1.5 border border-gold/30 bg-[#243824] px-1.5 py-2 hover:border-gold/50 sm:gap-2 sm:px-2"
+      className="draft-slot-filled flex items-center gap-2 rounded-lg px-2 py-2 sm:gap-2.5 sm:px-2.5"
     >
       <button
         type="button"
         aria-label={`Reorder ${player.full_name}`}
-        className="touch-none shrink-0 cursor-grab rounded px-0.5 py-0.5 text-cream-muted active:cursor-grabbing active:text-gold"
+        className="touch-none shrink-0 cursor-grab rounded p-1 text-cream-muted active:cursor-grabbing active:text-accent"
         {...attributes}
         {...listeners}
       >
         <DragHandleIcon />
       </button>
-      <span className="w-4 shrink-0 text-center font-[family-name:var(--font-mono)] text-xs text-cream-muted sm:w-5 sm:text-sm">
+      <span className="w-4 shrink-0 text-center font-[family-name:var(--font-mono)] text-xs text-cream-muted">
         {slot}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[13px] font-semibold leading-tight text-cream sm:text-sm">
+        <p className="truncate text-sm font-medium leading-tight text-cream">
           {player.full_name}
         </p>
         <PlayerMetaLine

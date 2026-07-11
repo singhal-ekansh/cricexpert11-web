@@ -93,14 +93,14 @@ export default function ChallengePage() {
 
   return (
     <main className="relative z-10 min-h-screen">
-      <header className="border-b border-border/80 bg-[#0c0a10]/85 px-4 py-3 backdrop-blur-md">
+      <header className="app-header px-4 py-3">
         <div className="mx-auto flex max-w-2xl items-center justify-between">
-          <Link href="/">
+          <Link href="/" className="hover:opacity-80">
             <GameLogo variant="header" />
           </Link>
           {user && (
-            <Link href="/profile" className="text-xs text-gold hover:underline">
-              My profile
+            <Link href="/profile" className="btn-ghost text-xs">
+              Profile
             </Link>
           )}
         </div>
@@ -135,19 +135,19 @@ export default function ChallengePage() {
 
         {challenge && !loading && (
           <div className="hero-card rounded-2xl px-6 py-8 text-center">
-            <p className="text-[10px] font-bold tracking-[0.3em] text-gold uppercase">
+            <p className="text-sm text-accent">
               {challenge.viewer_is_creator ? "My challenge" : "Friend challenge"}
             </p>
-            <h1 className="mt-3 font-[family-name:var(--font-display)] text-3xl text-cream">
+            <h1 className="mt-2 text-2xl font-semibold text-cream sm:text-3xl">
               {challenge.viewer_is_creator ? (
                 <>
                   You scored{" "}
-                  <span className="text-gold-bright">{challenge.creator_score}</span>
+                  <span className="text-gold">{challenge.creator_score}</span>
                 </>
               ) : (
                 <>
                   {userDisplayName(challenge.creator?.display_name, "Someone")} scored{" "}
-                  <span className="text-gold-bright">{challenge.creator_score}</span>
+                  <span className="text-gold">{challenge.creator_score}</span>
                 </>
               )}
             </h1>

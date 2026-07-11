@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { ChallengeComparison } from "@/lib/types";
 import { userDisplayName } from "@/lib/user";
+import { ScorePenaltiesSummary } from "./ScorePenaltiesSummary";
 
 function formatRole(role: string): string {
   if (role === "Wicketkeeper-batsman") return "WK";
@@ -83,18 +84,18 @@ export function ChallengeResultScreen({
           <button
             type="button"
             onClick={onBack}
-            className="mb-3 text-xs text-cream-muted transition-colors hover:text-gold sm:mb-4"
+            className="mb-3 text-sm text-cream-muted transition-colors hover:text-cream sm:mb-4"
           >
             ← Back to leaderboard
           </button>
         )}
 
         <div className="text-center">
-          <p className="text-[10px] font-bold tracking-[0.2em] text-gold uppercase sm:tracking-[0.3em]">
+          <p className="text-sm text-cream-muted">
             {subjectName}&apos;s lineup
           </p>
           <p
-            className={`mt-2 text-xs font-bold tracking-wide uppercase sm:mt-3 sm:text-sm sm:tracking-[0.2em] ${outcomeClass(outcome)}`}
+            className={`mt-2 text-sm font-medium sm:mt-3 ${outcomeClass(outcome)}`}
           >
             {outcomeLabel(outcome)} vs {subjectName}
           </p>
@@ -107,6 +108,14 @@ export function ChallengeResultScreen({
               <p className="mt-1 text-xs text-cream-muted sm:text-sm">
                 {a.total_credits} credits
               </p>
+              <ScorePenaltiesSummary
+                wk_penalty={a.wk_penalty}
+                credit_penalty={a.credit_penalty}
+                credits_over_budget={a.credits_over_budget}
+                credit_budget={a.credit_budget}
+                total_credits={a.total_credits}
+                compact
+              />
             </div>
             <p className="text-base text-cream-muted sm:text-lg">vs</p>
             <div>
@@ -117,6 +126,14 @@ export function ChallengeResultScreen({
               <p className="mt-1 text-xs text-cream-muted sm:text-sm">
                 {b.total_credits} credits
               </p>
+              <ScorePenaltiesSummary
+                wk_penalty={b.wk_penalty}
+                credit_penalty={b.credit_penalty}
+                credits_over_budget={b.credits_over_budget}
+                credit_budget={b.credit_budget}
+                total_credits={b.total_credits}
+                compact
+              />
             </div>
           </div>
         </div>
@@ -128,18 +145,18 @@ export function ChallengeResultScreen({
               key={row.slot}
               className="rounded-xl border border-border/70 bg-bg-card/40 px-3 py-2.5"
             >
-              <p className="text-[10px] font-bold tracking-wider text-gold uppercase">
+              <p className="text-xs font-medium text-cream-muted">
                 #{row.slot}
               </p>
               <div className="mt-2 grid grid-cols-2 gap-3">
                 <div className="min-w-0">
-                  <p className="text-[10px] font-semibold tracking-wide text-cream-muted uppercase">
+                  <p className="text-xs font-medium text-cream-muted">
                     {nameA}
                   </p>
                   <div className="mt-1">{row.a ? <PlayerCell player={row.a} /> : <span className="text-cream-muted/40">—</span>}</div>
                 </div>
                 <div className="min-w-0 border-l border-border/50 pl-3">
-                  <p className="text-[10px] font-semibold tracking-wide text-cream-muted uppercase">
+                  <p className="text-xs font-medium text-cream-muted">
                     {nameB}
                   </p>
                   <div className="mt-1">{row.b ? <PlayerCell player={row.b} /> : <span className="text-cream-muted/40">—</span>}</div>
@@ -153,7 +170,7 @@ export function ChallengeResultScreen({
         <div className="mt-6 hidden overflow-x-auto rounded-xl border border-border sm:mt-8 sm:block">
           <table className="w-full min-w-[32rem] text-sm">
             <thead>
-              <tr className="border-b border-border bg-bg-panel text-left text-[10px] tracking-widest text-cream-muted uppercase">
+              <tr className="border-b border-border bg-bg-panel text-left text-xs text-cream-muted">
                 <th className="w-10 px-3 py-2.5">#</th>
                 <th className="px-3 py-2.5">{nameA}</th>
                 <th className="px-3 py-2.5">{nameB}</th>
@@ -165,7 +182,7 @@ export function ChallengeResultScreen({
                   key={row.slot}
                   className="border-b border-border/50 bg-bg-card/40 last:border-0"
                 >
-                  <td className="px-3 py-2.5 font-[family-name:var(--font-mono)] text-xs text-gold">
+                  <td className="px-3 py-2.5 font-[family-name:var(--font-mono)] text-xs text-cream-muted">
                     {row.slot}
                   </td>
                   <td className="px-3 py-2.5">

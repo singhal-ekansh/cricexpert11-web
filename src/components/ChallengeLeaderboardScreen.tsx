@@ -33,15 +33,12 @@ export function ChallengeLeaderboardScreen({
     <div className="animate-fade-up mx-auto w-full max-w-2xl">
       <div className="hero-card rounded-2xl px-3 py-5 sm:px-8 sm:py-8">
         <div className="text-center">
-          <p className="text-[10px] font-bold tracking-[0.3em] text-gold uppercase">
-            Challenge leaderboard
-          </p>
+          <p className="text-sm font-medium text-cream">Leaderboard</p>
           <p className="mt-2 text-sm text-cream-muted">
-            {player_count} player{player_count === 1 ? "" : "s"} · tap on players
-            to compare teams
+            {player_count} player{player_count === 1 ? "" : "s"} · tap to compare
           </p>
           {your_rank != null && (
-            <p className="mt-3 font-[family-name:var(--font-display)] text-2xl text-gold-bright">
+            <p className="mt-3 text-xl font-semibold text-gold">
               You finished {rankLabel(your_rank)}
             </p>
           )}

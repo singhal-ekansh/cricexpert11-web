@@ -37,8 +37,8 @@ function rankLabel(rank: number): string {
 
 function StatusPill({ tab }: { tab: Tab }) {
   const styles: Record<Tab, string> = {
-    live: "bg-sky-900/40 text-sky-200 border-sky-700/50",
-    completed: "bg-emerald-900/40 text-emerald-200 border-emerald-700/50",
+    live: "bg-sky-500/15 text-sky-400 border-sky-500/25",
+    completed: "bg-accent-muted text-accent border-emerald-500/25",
   };
   const labels: Record<Tab, string> = {
     live: "Your turn",
@@ -46,7 +46,7 @@ function StatusPill({ tab }: { tab: Tab }) {
   };
   return (
     <span
-      className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase ${styles[tab]}`}
+      className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium ${styles[tab]}`}
     >
       {labels[tab]}
     </span>
@@ -78,15 +78,12 @@ export function ProfileChallengeCard({
   const shareScore = yourScore ?? item.creator_score;
 
   return (
-    <div className="group overflow-hidden rounded-xl border border-border/70 bg-bg-card/50 transition-all hover:border-gold/35 hover:bg-bg-card/80">
-      <Link
-        href={challengeHref(item, tab)}
-        className="block p-4 sm:p-5"
-      >
+    <div className="group overflow-hidden rounded-xl border border-border bg-bg-card transition-colors hover:border-border-strong hover:bg-bg-card-hover">
+      <Link href={challengeHref(item, tab)} className="block p-4 sm:p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="truncate text-sm font-semibold text-cream group-hover:text-gold-bright sm:text-base">
+              <p className="truncate text-sm font-medium text-cream sm:text-base">
                 {title}
               </p>
               <StatusPill tab={tab} />
@@ -103,9 +100,7 @@ export function ProfileChallengeCard({
           <div className="shrink-0 text-right">
             {tab === "live" && targetScore != null && (
               <>
-                <p className="text-[10px] tracking-wide text-cream-muted uppercase">
-                  Beat
-                </p>
+                <p className="text-xs text-cream-muted">Beat</p>
                 <p className="font-[family-name:var(--font-mono)] text-xl font-semibold leading-none text-gold sm:text-2xl">
                   {targetScore}
                 </p>

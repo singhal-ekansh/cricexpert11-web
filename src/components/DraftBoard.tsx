@@ -67,6 +67,8 @@ export function DraftBoard({
     [lineup, playerMap],
   );
   const sortedPool = useMemo(() => sortPoolByRole(pool), [pool]);
+  const overBudget = totalCredits > creditBudget;
+  const progress = draftComplete ? 100 : ((round - 1) / totalRounds) * 100;
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -109,142 +111,160 @@ export function DraftBoard({
       onDragEnd={handleDragEnd}
       onDragCancel={() => setActivePlayer(null)}
     >
-      <div className="animate-fade-up grid gap-4 lg:grid-cols-2 lg:gap-6">
-        {/* LEFT — THE DRAFT */}
-        <section className="panel-card flex flex-col rounded-2xl border-emerald-900/40 p-3 sm:p-4 lg:p-5">
-          <header className="mb-3 flex items-start justify-between sm:mb-4">
+      <div className="animate-fade-up space-y-4 pb-24 lg:pb-0">
+        {/* Progress strip */}
+        <div className="rounded-xl border border-border bg-bg-card px-4 py-3">
+          <div className="flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-sm font-bold tracking-[0.2em] text-emerald-400 uppercase">
-                The Draft
-              </h2>
-              <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-cream-muted sm:text-xs">
-                <span className="inline-flex items-center gap-1">
-                  Use <DragHandleIcon size={14} className="text-gold" /> to reorder
-                </span>
-                {formatLabel && wicketLabel && (
-                  <span className="ml-2 text-cream-muted/80">
-                    · {formatLabel} · {wicketLabel}
-                  </span>
-                )}
-                <span className="ml-2 rounded border border-border px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-gold uppercase">
-                  {mode}
-                </span>
+              <p className="text-sm font-medium text-cream">
+                {draftComplete
+                  ? "Set batting order"
+                  : `Round ${round} of ${totalRounds}`}
               </p>
+              {(formatLabel || wicketLabel) && (
+                <p className="mt-0.5 text-xs text-cream-muted">
+                  {[formatLabel, wicketLabel, mode].filter(Boolean).join(" · ")}
+                </p>
+              )}
             </div>
             <div className="text-right">
-              <span className="font-[family-name:var(--font-mono)] text-2xl font-bold text-gold">
+              <p className="font-[family-name:var(--font-mono)] text-lg font-semibold text-cream">
                 {filled}
-                <span className="text-base text-cream-muted">/11</span>
-              </span>
+                <span className="text-sm font-normal text-cream-muted">/11</span>
+              </p>
               <p
-                className={`mt-0.5 text-xs font-[family-name:var(--font-mono)] ${
-                  totalCredits > creditBudget ? "text-crimson" : "text-cream-muted"
+                className={`text-xs font-[family-name:var(--font-mono)] ${
+                  overBudget ? "text-crimson" : "text-cream-muted"
                 }`}
               >
-                {totalCredits}
-                <span className="text-cream-muted/70">/{creditBudget} cr</span>
+                {totalCredits}/{creditBudget} cr
               </p>
             </div>
-          </header>
+          </div>
+          <div className="mt-3 h-1 overflow-hidden rounded-full bg-bg-panel">
+            <div
+              className="h-full rounded-full bg-accent transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
 
-          <div className="space-y-1">
-            {filled === 0 ? (
-              <div className="rounded-md border border-dashed border-[#2d4a2d]/60 bg-[#1a2e1a]/40 px-3 py-5 text-center sm:px-4 sm:py-6">
-                <p className="text-sm text-cream-muted">Your picks appear here</p>
-                <p className="mt-1 text-xs text-cream-muted/70">
-                  Choose a player from the pool
+        <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">
+          {/* Pool — first on mobile */}
+          <section className="panel-card order-1 flex flex-col rounded-2xl p-4 lg:order-2">
+            <header className="mb-3 flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-semibold text-cream">
+                  {draftComplete ? "Draft complete" : "Choose a player"}
+                </h2>
+                <p className="mt-0.5 text-xs text-cream-muted">
+                  {draftComplete
+                    ? "Drag players to reorder your XI"
+                    : `${pool.length} available this round`}
                 </p>
               </div>
-            ) : (
-              Array.from({ length: 11 }, (_, i) => i + 1)
-                .filter((slot) => lineup[slot])
-                .map((slot) => {
-                  const pid = lineup[slot];
-                  const player = pid ? playerMap[pid] : null;
-                  return (
-                    <DraftSlotRow
-                      key={slot}
-                      slot={slot}
-                      player={player}
-                      showStats={showStats}
-                    />
-                  );
-                })
-            )}
-          </div>
+              {canUndo && onUndo && !draftComplete && (
+                <button
+                  type="button"
+                  onClick={onUndo}
+                  className="btn-outline rounded-lg px-2.5 py-1 text-xs"
+                >
+                  Undo
+                </button>
+              )}
+            </header>
 
-          {draftComplete && (
-            <button
-              type="button"
-              onClick={onSubmit}
-              disabled={submitting || filled < 11}
-              className="btn-gold mt-4 w-full rounded-lg px-6 py-4 text-sm"
-            >
-              {submitting ? "Scoring…" : "Submit XI & Score"}
-            </button>
-          )}
-        </section>
-
-        {/* RIGHT — THE POOL */}
-        <section className="panel-card flex flex-col rounded-2xl border-crimson/20 p-3 sm:p-4 lg:p-5">
-          <header className="mb-3 sm:mb-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold tracking-[0.2em] text-crimson uppercase">
-                The Pool
-              </h2>
-              <div className="flex items-center gap-2">
-                {canUndo && onUndo && (
-                  <button
-                    type="button"
-                    onClick={onUndo}
-                    className="btn-outline rounded-lg px-2.5 py-1 text-[10px] tracking-wide"
-                  >
-                    Undo pick
-                  </button>
-                )}
-                <span className="stat-pill">
-                  Round {draftComplete ? totalRounds : round}/{totalRounds}
-                </span>
-              </div>
+            <div className="space-y-1.5">
+              {draftComplete ? (
+                <div className="flex min-h-[100px] flex-col items-center justify-center rounded-xl border border-dashed border-border p-5 text-center">
+                  <p className="text-sm text-cream-muted">
+                    Hold{" "}
+                    <DragHandleIcon size={14} className="inline text-accent" />{" "}
+                    and drag to reorder
+                  </p>
+                  <p className="mt-1 text-xs text-cream-muted/70">
+                    Batters up top, bowlers at the tail
+                  </p>
+                </div>
+              ) : (
+                sortedPool.map((player) => (
+                  <PoolPlayerRow
+                    key={player.player_id}
+                    player={player}
+                    showStats={showStats}
+                    onPick={() => onPick(player)}
+                  />
+                ))
+              )}
             </div>
-            <p className="mt-1 text-xs text-cream-muted">
-              {draftComplete
-                ? "Draft complete — set your order on the left"
-                : `${pool.length} players — pick one`}
-            </p>
-          </header>
+          </section>
 
-          <div className="space-y-1 sm:space-y-1.5">
-            {draftComplete ? (
-              <div className="flex h-full min-h-[120px] flex-col items-center justify-center rounded-lg border border-dashed border-border p-4 text-center sm:min-h-[160px] sm:p-6">
-                <p className="text-sm text-cream-muted">
-                  All 11 players drafted
-                </p>
-                <p className="mt-2 flex flex-wrap items-center justify-center gap-1 text-[11px] text-cream-muted/70 sm:text-xs">
-                  Hold{" "}
-                  <DragHandleIcon size={14} className="text-gold" /> and drag
-                  into position — batters up top, bowlers at the tail — then
-                  submit.
-                </p>
-              </div>
-            ) : (
-              sortedPool.map((player) => (
-                <PoolPlayerRow
-                  key={player.player_id}
-                  player={player}
-                  showStats={showStats}
-                  onPick={() => onPick(player)}
-                />
-              ))
+          {/* Team */}
+          <section className="panel-card order-2 flex flex-col rounded-2xl p-4 lg:order-1">
+            <header className="mb-3">
+              <h2 className="text-sm font-semibold text-cream">Your XI</h2>
+              <p className="mt-0.5 text-xs text-cream-muted">
+                {filled === 0
+                  ? "Picks appear here as you draft"
+                  : `${filled} players selected`}
+              </p>
+            </header>
+
+            <div className="space-y-1">
+              {filled === 0 ? (
+                <div className="rounded-xl border border-dashed border-border px-4 py-8 text-center">
+                  <p className="text-sm text-cream-muted">No picks yet</p>
+                </div>
+              ) : (
+                Array.from({ length: 11 }, (_, i) => i + 1)
+                  .filter((slot) => lineup[slot])
+                  .map((slot) => {
+                    const pid = lineup[slot];
+                    const player = pid ? playerMap[pid] : null;
+                    return (
+                      <DraftSlotRow
+                        key={slot}
+                        slot={slot}
+                        player={player}
+                        showStats={showStats}
+                      />
+                    );
+                  })
+              )}
+            </div>
+
+            {draftComplete && (
+              <button
+                type="button"
+                onClick={onSubmit}
+                disabled={submitting || filled < 11}
+                className="btn-gold mt-4 hidden w-full rounded-xl px-6 py-3.5 text-sm lg:inline-flex lg:justify-center"
+              >
+                {submitting ? "Scoring…" : "Submit & score"}
+              </button>
             )}
-          </div>
-        </section>
+          </section>
+        </div>
       </div>
+
+      {/* Mobile sticky submit */}
+      {draftComplete && (
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-bg-deep/95 p-3 backdrop-blur-md lg:hidden">
+          <button
+            type="button"
+            onClick={onSubmit}
+            disabled={submitting || filled < 11}
+            className="btn-gold w-full rounded-xl px-6 py-3.5 text-sm font-semibold"
+          >
+            {submitting ? "Scoring…" : "Submit & score"}
+          </button>
+        </div>
+      )}
 
       <DragOverlay>
         {activePlayer ? (
-          <div className="rounded-md border border-gold bg-[#243824] px-3 py-2 shadow-2xl sm:px-4 sm:py-3">
-            <p className="font-semibold text-cream">{activePlayer.full_name}</p>
+          <div className="rounded-xl border border-accent/40 bg-bg-card px-4 py-3 shadow-xl">
+            <p className="font-medium text-cream">{activePlayer.full_name}</p>
             <p className="text-xs text-cream-muted">{activePlayer.country}</p>
           </div>
         ) : null}

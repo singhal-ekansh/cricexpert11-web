@@ -74,7 +74,6 @@ function PlayPageContent() {
   const [isNewBest, setIsNewBest] = useState(false);
   const [best, setBest] = useState<BestScoreRecord | null>(null);
   const [showHowTo, setShowHowTo] = useState(false);
-  const [resumed, setResumed] = useState(false);
   const [mode, setMode] = useState<GameMode>("easy");
   const [settings, setSettings] = useState<GameSettings>(DEFAULT_GAME_SETTINGS);
   const [challengeMeta, setChallengeMeta] = useState<ChallengeDetail | null>(null);
@@ -108,7 +107,6 @@ function PlayPageContent() {
     setScore(saved.score ?? null);
     setIsNewBest(saved.isNewBest ?? false);
     setBootFailed(false);
-    setResumed(true);
     setBest(getBestScore(saved.mode, saved.settings));
     setLoading(false);
   }, []);
@@ -133,7 +131,6 @@ function PlayPageContent() {
       setLineup({});
       setScore(null);
       setIsNewBest(false);
-      setResumed(false);
       if (!opts?.keepChallenge) {
         setCreatedChallengeId(null);
         setChallengeShareUrl(null);
@@ -404,43 +401,38 @@ function PlayPageContent() {
 
   return (
     <main className="relative z-10 min-h-screen">
-      <header className="sticky top-0 z-20 border-b border-border/80 bg-[#0c0a10]/85 backdrop-blur-md">
+      <header className="app-header sticky top-0 z-20">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3">
-          <Link href="/" className="flex shrink-0 items-center transition-opacity hover:opacity-90">
+          <Link href="/" className="flex shrink-0 items-center transition-opacity hover:opacity-80">
             <GameLogo variant="header" priority />
           </Link>
-          <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-4">
+          <div className="flex items-center justify-end gap-2 sm:gap-3">
+            {game && phase === "draft" && (
+              <span className="hidden text-xs text-cream-muted sm:inline">
+                Round {currentRound}/{game.rounds}
+              </span>
+            )}
             <button
               type="button"
               onClick={() => setShowHowTo(true)}
               className={[
-                "btn-outline rounded-lg px-2.5 py-1 text-[10px] sm:px-3 sm:py-1.5 sm:text-[11px]",
+                "btn-ghost rounded-lg px-2 py-1 text-xs sm:px-2.5",
                 challengeId ? "hidden sm:inline-flex" : "",
               ].join(" ")}
             >
               Rules
             </button>
             {user && !challengeId && (
-              <Link href="/profile" className="text-xs text-gold hover:underline">
-                My profile
+              <Link href="/profile" className="btn-ghost text-xs">
+                Profile
               </Link>
             )}
             {best && phase !== "result" && !challengeId && (
               <span className="hidden text-xs text-cream-muted sm:inline">
-                Best:{" "}
+                Best{" "}
                 <span className="font-[family-name:var(--font-mono)] text-gold">
                   {best.team_score}
                 </span>
-              </span>
-            )}
-            {game && (
-              <span className="hidden rounded border border-border px-2 py-0.5 text-[10px] text-cream-muted sm:inline">
-                {game.format_label} · {game.wicket_mode_label}
-              </span>
-            )}
-            {!challengeId && (
-              <span className="rounded border border-border px-2 py-0.5 text-[10px] font-bold tracking-wider text-gold uppercase">
-                {mode}
               </span>
             )}
           </div>
@@ -454,18 +446,11 @@ function PlayPageContent() {
         ].join(" ")}
       >
         {challengeMeta && phase === "draft" && challengeMeta.creator_score != null && (
-          <div className="mb-4 rounded-lg border border-gold/30 bg-gold/5 px-4 py-2.5 text-center text-xs text-cream-muted">
+          <div className="mb-4 rounded-xl border border-border bg-accent-muted px-4 py-3 text-center text-sm text-cream-muted">
             Beat{" "}
-            <span className="font-semibold text-gold">
+            <span className="font-medium text-cream">
               {userDisplayName(challengeMeta.creator?.display_name, "friend")}&apos;s {challengeMeta.creator_score}
-            </span>{" "}
-            — same pools, your XI
-          </div>
-        )}
-
-        {resumed && !loading && phase === "draft" && (
-          <div className="mb-4 rounded-lg border border-gold/30 bg-gold/5 px-4 py-2.5 text-center text-xs text-cream-muted">
-            Draft resumed — same picks and pools as before refresh.
+            </span>
           </div>
         )}
 

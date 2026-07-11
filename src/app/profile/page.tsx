@@ -66,6 +66,9 @@ export default function ProfilePage() {
       });
       setLivePage(data.live);
       setCompletedPage(data.completed);
+      if (data.live.items.length === 0) {
+        setTab("completed");
+      }
     } catch {
       setLivePage(EMPTY_PAGE);
       setCompletedPage(EMPTY_PAGE);
@@ -126,16 +129,13 @@ export default function ProfilePage() {
 
   return (
     <main className="relative z-10 min-h-screen">
-      <header className="sticky top-0 z-20 border-b border-border/80 bg-[#0c0a10]/90 backdrop-blur-md">
+      <header className="app-header sticky top-0 z-20">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
-          <Link href="/" className="transition-opacity hover:opacity-90">
+          <Link href="/" className="transition-opacity hover:opacity-80">
             <GameLogo variant="header" />
           </Link>
           <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="text-xs text-cream-muted transition-colors hover:text-cream"
-            >
+            <Link href="/" className="btn-ghost text-xs">
               Home
             </Link>
             {user && (
@@ -144,7 +144,7 @@ export default function ProfilePage() {
                   name={userDisplayName(user.display_name, "Player")}
                   avatarUrl={user.avatar_url}
                   className="h-6 w-6"
-                  fallbackClassName="bg-gold/10 text-[10px] font-semibold text-gold"
+                  fallbackClassName="bg-accent-muted text-[10px] font-semibold text-accent"
                 />
                 <button
                   type="button"
@@ -152,7 +152,7 @@ export default function ProfilePage() {
                     logout();
                     router.push("/");
                   }}
-                  className="text-xs text-cream-muted transition-colors hover:text-cream"
+                  className="btn-ghost text-xs"
                 >
                   Sign out
                 </button>
@@ -165,25 +165,20 @@ export default function ProfilePage() {
       <div className="mx-auto max-w-3xl px-4 py-6 sm:py-8">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <h2 className="text-[10px] font-bold tracking-[0.25em] text-gold uppercase">
-              Challenges
-            </h2>
-            <p className="mt-1 text-sm text-cream-muted">
-              Friend drafts you sent or joined
-            </p>
+            <h1 className="text-xl font-semibold text-cream">Challenges</h1>
           </div>
           {user && !loading && (
             <button
               type="button"
               onClick={() => loadInitial()}
-              className="text-xs text-cream-muted underline-offset-2 hover:text-gold hover:underline"
+              className="btn-ghost text-xs"
             >
               Refresh
             </button>
           )}
         </div>
 
-        <div className="mt-4 flex gap-1 rounded-xl border border-border/70 bg-bg-card/30 p-1 sm:mt-5">
+        <div className="mt-4 flex gap-1 rounded-xl border border-border bg-bg-panel p-1 sm:mt-5">
           {TABS.map(({ id, label }) => {
             const active = tab === id;
             return (
@@ -192,9 +187,9 @@ export default function ProfilePage() {
                 type="button"
                 onClick={() => setTab(id)}
                 className={[
-                  "flex flex-1 items-center justify-center rounded-lg px-2 py-2.5 text-xs font-medium transition-colors sm:px-3 sm:text-sm",
+                  "flex flex-1 items-center justify-center rounded-lg px-2 py-2.5 text-sm font-medium transition-colors sm:px-3",
                   active
-                    ? "bg-gold/15 text-gold-bright shadow-sm"
+                    ? "bg-accent-muted text-accent"
                     : "text-cream-muted hover:text-cream",
                 ].join(" ")}
               >

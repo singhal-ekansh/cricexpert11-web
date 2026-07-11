@@ -7,10 +7,9 @@ import { AddToHomeScreen } from "@/components/AddToHomeScreen";
 import { GameLogo } from "@/components/GameLogo";
 import { GameSetupModal } from "@/components/GameSetupModal";
 import { GoogleSignInModal } from "@/components/GoogleSignInModal";
-import { HomeSceneBackground } from "@/components/HomeSceneBackground";
 import { HowToPlayModal } from "@/components/HowToPlayModal";
 import { SiteFooter } from "@/components/SiteFooter";
-import { BRAND_HERO_COPY, BRAND_TAGLINE } from "@/lib/brand";
+import { BRAND_HERO_COPY } from "@/lib/brand";
 import { getGameOptions } from "@/lib/api";
 import {
   DEFAULT_GAME_SETTINGS,
@@ -90,25 +89,20 @@ export default function HomePage() {
 
   return (
     <>
-      <HomeSceneBackground />
       <main className="relative z-10 flex min-h-screen flex-col">
-        <div className="flex flex-1 flex-col items-center justify-center px-4 py-8 sm:py-12">
-          <div className="hero-card hero-card-home animate-fade-up w-full max-w-lg rounded-2xl px-5 py-8 sm:px-10 sm:py-10">
+        <div className="flex flex-1 flex-col items-center justify-center px-4 py-10 sm:py-14">
+          <div className="hero-card animate-fade-up w-full max-w-md rounded-2xl px-6 py-8 sm:px-8 sm:py-10">
             <GameLogo variant="home" className="mx-auto" priority />
 
-            <p className="mt-5 text-center text-[10px] font-bold tracking-[0.28em] text-gold uppercase sm:text-xs">
-              {BRAND_TAGLINE}
-            </p>
-
-            <p className="mx-auto mt-4 max-w-sm text-center text-sm leading-relaxed text-cream-muted sm:text-base sm:leading-relaxed">
+            <p className="mx-auto mt-5 max-w-sm text-center text-sm leading-relaxed text-cream-muted">
               {BRAND_HERO_COPY}
             </p>
 
-            <div className="mt-8 space-y-3">
+            <div className="mt-8 space-y-2.5">
               <button
                 type="button"
                 onClick={() => setShowSetup(true)}
-                className="btn-gold animate-pulse-gold w-full rounded-xl px-6 py-4 text-sm font-semibold tracking-[0.1em]"
+                className="btn-gold w-full rounded-xl px-6 py-3.5 text-sm font-semibold"
               >
                 Play
               </button>
@@ -116,7 +110,7 @@ export default function HomePage() {
                 <button
                   type="button"
                   onClick={handleMyChallenges}
-                  className="btn-outline w-full rounded-xl px-6 py-3.5 text-sm tracking-[0.06em]"
+                  className="btn-outline w-full rounded-xl px-6 py-3 text-sm"
                 >
                   My challenges
                 </button>
@@ -124,19 +118,19 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => setShowHowTo(true)}
-                className="btn-outline w-full rounded-xl px-6 py-3.5 text-sm tracking-[0.06em]"
+                className="btn-ghost w-full py-2 text-sm"
               >
                 How to play
               </button>
               <AddToHomeScreen />
             </div>
 
-            <p className="mt-8 text-center text-[10px] font-medium tracking-[0.16em] text-cream-muted/60 uppercase">
+            <p className="mt-6 text-center text-xs text-cream-muted/70">
               Real T20I stats · 11-round draft · Score your XI
             </p>
           </div>
 
-          <SiteFooter className="mt-8 w-full max-w-lg" />
+          <SiteFooter className="mt-8 w-full max-w-md" />
         </div>
 
         <GameSetupModal

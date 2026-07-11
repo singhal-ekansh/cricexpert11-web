@@ -93,7 +93,7 @@ export function AddToHomeScreen() {
       <button
         type="button"
         onClick={handleInstall}
-        className="btn-outline w-full rounded-xl px-6 py-3.5 text-sm tracking-[0.06em]"
+        className="btn-ghost w-full py-2 text-sm"
       >
         Add to home screen
       </button>
@@ -107,7 +107,7 @@ export function AddToHomeScreen() {
         >
           <button
             type="button"
-            className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+            className="modal-overlay absolute inset-0"
             onClick={() => setGuide(null)}
             aria-label="Close"
           />
