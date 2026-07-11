@@ -1,12 +1,16 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/components/AuthProvider";
 import { GameLogo } from "@/components/GameLogo";
 import { GameSetupModal } from "@/components/GameSetupModal";
+import { GoogleSignInModal } from "@/components/GoogleSignInModal";
+import { HomeHeader } from "@/components/HomeHeader";
 import { HomeSceneBackground } from "@/components/HomeSceneBackground";
 import { HowToPlayModal } from "@/components/HowToPlayModal";
 import { SiteFooter } from "@/components/SiteFooter";
-import { BRAND_HERO_COPY } from "@/lib/brand";
+import { BRAND_HERO_COPY, BRAND_TAGLINE } from "@/lib/brand";
 import { getGameOptions } from "@/lib/api";
 import {
   DEFAULT_GAME_SETTINGS,
@@ -18,12 +22,25 @@ import {
 import type { GameMode, GameOption, GameSettings } from "@/lib/types";
 
 export default function HomePage() {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [mode, setMode] = useState<GameMode>("easy");
   const [settings, setSettings] = useState<GameSettings>(DEFAULT_GAME_SETTINGS);
   const [formats, setFormats] = useState<GameOption[]>([]);
   const [wicketModes, setWicketModes] = useState<GameOption[]>([]);
   const [showHowTo, setShowHowTo] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
+  const [showSignIn, setShowSignIn] = useState(false);
+  const [signInForChallenges, setSignInForChallenges] = useState(false);
+
+  const handleMyChallenges = () => {
+    if (user) {
+      router.push("/profile");
+      return;
+    }
+    setSignInForChallenges(true);
+    setShowSignIn(true);
+  };
 
   useEffect(() => {
     const savedMode = getGameMode();
@@ -74,56 +91,86 @@ export default function HomePage() {
   return (
     <>
       <HomeSceneBackground />
-      <main className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-8 sm:py-12">
-      <div className="hero-card hero-card-home animate-fade-up w-full max-w-md rounded-2xl px-5 py-7 sm:px-8 sm:py-9">
-        <GameLogo variant="home" className="mx-auto mb-1" priority />
+      <main className="relative z-10 flex min-h-screen flex-col">
+        <HomeHeader />
 
-        <p className="mx-auto mt-4 max-w-sm text-center text-sm leading-relaxed text-cream-muted">
-          {BRAND_HERO_COPY}
-        </p>
+        <div className="flex flex-1 flex-col items-center justify-center px-4 py-8 sm:py-12">
+          <div className="hero-card hero-card-home animate-fade-up w-full max-w-lg rounded-2xl px-5 py-8 sm:px-10 sm:py-10">
+            <GameLogo variant="home" className="mx-auto" priority />
 
-        <div className="mt-7 space-y-4">
-          <div className="space-y-2.5 pt-1">
-            <button
-              type="button"
-              onClick={() => setShowSetup(true)}
-              className="btn-gold animate-pulse-gold w-full rounded-xl px-6 py-4 text-sm tracking-[0.12em]"
-            >
-              Play
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowHowTo(true)}
-              className="btn-outline w-full rounded-xl px-6 py-3 text-sm tracking-[0.08em]"
-            >
-              How to play
-            </button>
+            <p className="mt-5 text-center text-[10px] font-bold tracking-[0.28em] text-gold uppercase sm:text-xs">
+              {BRAND_TAGLINE}
+            </p>
+
+            <p className="mx-auto mt-4 max-w-sm text-center text-sm leading-relaxed text-cream-muted sm:text-base sm:leading-relaxed">
+              {BRAND_HERO_COPY}
+            </p>
+
+            <div className="mt-8 space-y-3">
+              <button
+                type="button"
+                onClick={() => setShowSetup(true)}
+                className="btn-gold animate-pulse-gold w-full rounded-xl px-6 py-4 text-sm font-semibold tracking-[0.1em]"
+              >
+                Play
+              </button>
+              {!authLoading && (
+                <button
+                  type="button"
+                  onClick={handleMyChallenges}
+                  className="btn-outline w-full rounded-xl px-6 py-3.5 text-sm tracking-[0.06em]"
+                >
+                  My challenges
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowHowTo(true)}
+                className="btn-outline w-full rounded-xl px-6 py-3.5 text-sm tracking-[0.06em]"
+              >
+                How to play
+              </button>
+            </div>
+
+            <p className="mt-8 text-center text-[10px] font-medium tracking-[0.16em] text-cream-muted/60 uppercase">
+              Real T20I stats · 11-round draft · Score your XI
+            </p>
           </div>
+
+          <SiteFooter className="mt-8 w-full max-w-lg" />
         </div>
 
-        <p className="mt-6 text-center text-[10px] font-medium tracking-[0.18em] text-cream-muted/70 uppercase">
-          Powered by real cricket data
-        </p>
-      </div>
+        <GameSetupModal
+          open={showSetup}
+          onClose={() => setShowSetup(false)}
+          formats={formats}
+          wicketModes={wicketModes}
+          settings={settings}
+          mode={mode}
+          onSettingsChange={handleSettingsChange}
+          onModeChange={handleModeChange}
+        />
 
-      <SiteFooter className="mt-8 max-w-md" />
+        <HowToPlayModal
+          open={showHowTo}
+          onClose={() => setShowHowTo(false)}
+          creditBudget={creditBudget}
+        />
 
-      <GameSetupModal
-        open={showSetup}
-        onClose={() => setShowSetup(false)}
-        formats={formats}
-        wicketModes={wicketModes}
-        settings={settings}
-        mode={mode}
-        onSettingsChange={handleSettingsChange}
-        onModeChange={handleModeChange}
-      />
-
-      <HowToPlayModal
-        open={showHowTo}
-        onClose={() => setShowHowTo(false)}
-        creditBudget={creditBudget}
-      />
+        <GoogleSignInModal
+          open={showSignIn}
+          onClose={() => {
+            setShowSignIn(false);
+            setSignInForChallenges(false);
+          }}
+          onSuccess={() => {
+            setShowSignIn(false);
+            if (signInForChallenges) {
+              router.push("/profile");
+            }
+            setSignInForChallenges(false);
+          }}
+        />
       </main>
     </>
   );

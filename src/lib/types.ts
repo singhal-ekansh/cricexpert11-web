@@ -117,3 +117,143 @@ export interface GameSession {
   phase: GamePhase;
   score?: ScoreResponse;
 }
+
+export interface AuthUser {
+  id: string;
+  display_name: string;
+  avatar_url: string | null;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user: AuthUser;
+}
+
+export interface ChallengeUser {
+  id: string;
+  display_name: string;
+  avatar_url: string | null;
+}
+
+export interface ChallengeSummary {
+  id: string;
+  seed: number;
+  format: string;
+  wicket_mode: string;
+  mode: GameMode;
+  status: string;
+  created_at: string;
+  expires_at: string;
+  your_score?: number | null;
+  your_rank?: number | null;
+  player_count?: number;
+  creator_score?: number | null;
+  creator?: ChallengeUser;
+}
+
+export interface ChallengeDetail {
+  id: string;
+  seed: number;
+  format: string;
+  wicket_mode: string;
+  mode: GameMode;
+  engine_version: string;
+  status: string;
+  expires_at: string;
+  created_at: string;
+  creator: ChallengeUser | null;
+  creator_score: number | null;
+  submission_count: number;
+  viewer_has_submitted?: boolean;
+  viewer_is_creator?: boolean;
+}
+
+export interface CreateChallengeResponse {
+  id: string;
+  share_path: string;
+  seed: number;
+  format: string;
+  wicket_mode: string;
+  mode: GameMode;
+  status: string;
+}
+
+export interface ChallengeSlotPlayer {
+  player_id: string;
+  full_name: string;
+  primary_role: string;
+  slot_score: number;
+}
+
+export interface ChallengeComparison {
+  a: {
+    user: ChallengeUser;
+    team_score: number;
+    breakdown: SlotBreakdown[];
+  };
+  b: {
+    user: ChallengeUser;
+    team_score: number;
+    breakdown: SlotBreakdown[];
+  };
+  winner: ChallengeUser | null;
+  is_tie: boolean;
+  outcome: "win" | "loss" | "tie";
+  subject_user_id: string;
+  viewer_user_id: string;
+  slots: Array<{
+    slot: number;
+    a?: ChallengeSlotPlayer;
+    b?: ChallengeSlotPlayer;
+  }>;
+  shared_picks: number;
+  total_picks: number;
+}
+
+export interface ChallengeLeaderboardEntry {
+  rank: number;
+  user: ChallengeUser;
+  team_score: number;
+  is_creator: boolean;
+  is_you?: boolean;
+}
+
+export interface ChallengeLeaderboard {
+  challenge_id: string;
+  creator: ChallengeUser;
+  entries: ChallengeLeaderboardEntry[];
+  your_rank: number | null;
+  player_count: number;
+  expires_at: string;
+}
+
+export interface ChallengeMySubmission {
+  user: ChallengeUser;
+  team_score: number;
+  total_credits: number;
+  breakdown: SlotBreakdown[];
+  rank: number | null;
+  player_count: number;
+  expires_at?: string;
+}
+
+export interface SubmitChallengeResponse {
+  challenge_id: string;
+  your_score: ScoreResponse;
+  status: string;
+  leaderboard: ChallengeLeaderboard;
+}
+
+export interface ChallengeListPage {
+  items: ChallengeSummary[];
+  total: number;
+  page: number;
+  page_size: number;
+  has_more: boolean;
+}
+
+export interface MyChallengesResponse {
+  live: ChallengeListPage;
+  completed: ChallengeListPage;
+}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans, Instrument_Serif, JetBrains_Mono } from "next/font/google";
+import { AppProviders } from "@/components/AppProviders";
 import { SceneBackground } from "@/components/SceneBackground";
 import { BRAND_DESCRIPTION, BRAND_NAME, BRAND_TAGLINE } from "@/lib/brand";
 import "./globals.css";
@@ -48,7 +49,7 @@ export default function RootLayout({
         className={`${dmSans.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} antialiased`}
       >
         <SceneBackground />
-        {children}
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );

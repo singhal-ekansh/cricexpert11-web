@@ -1,13 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useAuth } from "@/components/AuthProvider";
 import { DraftBoard } from "@/components/DraftBoard";
 import { GameLogo } from "@/components/GameLogo";
+import { GoogleSignInModal } from "@/components/GoogleSignInModal";
 import { HowToPlayModal } from "@/components/HowToPlayModal";
 import { ResultScreen } from "@/components/ResultScreen";
 import { SiteFooter } from "@/components/SiteFooter";
-import { scoreTeam, startGame } from "@/lib/api";
+import {
+  createChallenge,
+  getChallenge,
+  getChallengeComparison,
+  getChallengeLeaderboard,
+  getChallengeMySubmission,
+  scoreTeam,
+  siteUrl,
+  startGame,
+  submitChallenge,
+} from "@/lib/api";
 import { firstEmptySlot, isLineupComplete } from "@/lib/draft";
 import {
   clearDraftState,
@@ -23,6 +36,10 @@ import {
 } from "@/lib/storage";
 import type {
   BestScoreRecord,
+  ChallengeComparison,
+  ChallengeDetail,
+  ChallengeLeaderboard,
+  ChallengeMySubmission,
   GameMode,
   GamePhase,
   GameSettings,
@@ -30,10 +47,23 @@ import type {
   PlayerCard,
   ScoreResponse,
 } from "@/lib/types";
+import { userDisplayName } from "@/lib/user";
 
-export default function PlayPage() {
+async function loadChallengeLeaderboard(
+  challengeId: string,
+): Promise<ChallengeLeaderboard> {
+  return getChallengeLeaderboard(challengeId);
+}
+
+function PlayPageContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const challengeId = searchParams.get("challenge");
+  const viewResult = searchParams.get("view") === "result";
+  const { user } = useAuth();
+
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [bootFailed, setBootFailed] = useState(false);
   const [phase, setPhase] = useState<GamePhase>("draft");
   const [game, setGame] = useState<GameStartResponse | null>(null);
   const [currentRound, setCurrentRound] = useState(1);
@@ -47,6 +77,15 @@ export default function PlayPage() {
   const [resumed, setResumed] = useState(false);
   const [mode, setMode] = useState<GameMode>("easy");
   const [settings, setSettings] = useState<GameSettings>(DEFAULT_GAME_SETTINGS);
+  const [challengeMeta, setChallengeMeta] = useState<ChallengeDetail | null>(null);
+  const [leaderboard, setLeaderboard] = useState<ChallengeLeaderboard | null>(null);
+  const [comparison, setComparison] = useState<ChallengeComparison | null>(null);
+  const [mySubmission, setMySubmission] = useState<ChallengeMySubmission | null>(null);
+  const [comparisonLoading, setComparisonLoading] = useState(false);
+  const [createdChallengeId, setCreatedChallengeId] = useState<string | null>(null);
+  const [challengeShareUrl, setChallengeShareUrl] = useState<string | null>(null);
+  const [challengeLoading, setChallengeLoading] = useState(false);
+  const [showChallengeLogin, setShowChallengeLogin] = useState(false);
   const booted = useRef(false);
   const showStats = mode === "easy";
 
@@ -68,49 +107,115 @@ export default function PlayPage() {
     setPhase(saved.phase);
     setScore(saved.score ?? null);
     setIsNewBest(saved.isNewBest ?? false);
-    setError(null);
+    setBootFailed(false);
     setResumed(true);
     setBest(getBestScore(saved.mode, saved.settings));
     setLoading(false);
   }, []);
 
-  const initGame = useCallback(async () => {
-    const activeSettings = getGameSettings();
-    const activeMode = getGameMode();
-    clearDraftState();
-    setSettings(activeSettings);
-    setMode(activeMode);
-    setLoading(true);
-    setError(null);
-    setPhase("draft");
-    setCurrentRound(1);
-    setPicks([]);
-    setLineup({});
-    setScore(null);
-    setIsNewBest(false);
-    setResumed(false);
-    try {
-      const data = await startGame(activeSettings, activeMode);
-      setGame(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to start game");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const initGame = useCallback(
+    async (opts?: {
+      seed?: number;
+      settings?: GameSettings;
+      mode?: GameMode;
+      keepChallenge?: boolean;
+    }) => {
+      const activeSettings = opts?.settings ?? getGameSettings();
+      const activeMode = opts?.mode ?? getGameMode();
+      clearDraftState();
+      setSettings(activeSettings);
+      setMode(activeMode);
+      setLoading(true);
+      setBootFailed(false);
+      setPhase("draft");
+      setCurrentRound(1);
+      setPicks([]);
+      setLineup({});
+      setScore(null);
+      setIsNewBest(false);
+      setResumed(false);
+      if (!opts?.keepChallenge) {
+        setCreatedChallengeId(null);
+        setChallengeShareUrl(null);
+        setComparison(null);
+        setLeaderboard(null);
+        setMySubmission(null);
+      }
+      try {
+        const data = await startGame(activeSettings, activeMode, opts?.seed);
+        setGame(data);
+      } catch {
+        setBootFailed(true);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (booted.current) return;
     booted.current = true;
 
-    const saved = loadDraftState();
-    if (saved && isDraftResumable(saved)) {
-      restoreDraft(saved);
-      return;
-    }
-    if (saved) clearDraftState();
-    initGame();
-  }, [initGame, restoreDraft]);
+    const boot = async () => {
+      if (challengeId) {
+        setLoading(true);
+        try {
+          const meta = await getChallenge(challengeId);
+          setChallengeMeta(meta);
+
+          if (viewResult || meta.viewer_has_submitted) {
+            clearDraftState();
+            try {
+              const board = await loadChallengeLeaderboard(challengeId);
+              setLeaderboard(board);
+              setComparison(null);
+              setMySubmission(null);
+              setPhase("result");
+            } catch {
+              router.replace("/");
+            } finally {
+              setLoading(false);
+            }
+            return;
+          }
+
+          const saved = loadDraftState();
+          if (saved && isDraftResumable(saved)) {
+            restoreDraft(saved);
+            return;
+          }
+          if (saved) clearDraftState();
+
+          const challengeSettings: GameSettings = {
+            format: meta.format,
+            wicketMode: meta.wicket_mode,
+          };
+          await initGame({
+            seed: meta.seed,
+            settings: challengeSettings,
+            mode: meta.mode,
+            keepChallenge: true,
+          });
+        } catch {
+          router.replace("/");
+          setLoading(false);
+        }
+        return;
+      }
+
+      const saved = loadDraftState();
+      if (saved && isDraftResumable(saved)) {
+        restoreDraft(saved);
+        return;
+      }
+      if (saved) clearDraftState();
+
+      initGame();
+    };
+
+    void boot();
+  }, [challengeId, viewResult, initGame, restoreDraft, router]);
 
   useEffect(() => {
     if (loading || !game) return;
@@ -140,11 +245,40 @@ export default function PlayPage() {
   ]);
 
   useEffect(() => {
+    if (challengeId) return;
     const savedMode = getGameMode();
     const savedSettings = getGameSettings();
     setMode(savedMode);
     setSettings(savedSettings);
     setBest(getBestScore(savedMode, savedSettings));
+  }, [challengeId]);
+
+  const handleSelectPlayer = useCallback(
+    async (userId: string, isYou: boolean) => {
+      if (!challengeId) return;
+      setComparisonLoading(true);
+      try {
+        if (isYou) {
+          const team = await getChallengeMySubmission(challengeId);
+          setMySubmission(team);
+          setComparison(null);
+        } else {
+          const cmp = await getChallengeComparison(challengeId, userId);
+          setComparison(cmp);
+          setMySubmission(null);
+        }
+      } catch {
+        // comparison unavailable — stay on leaderboard
+      } finally {
+        setComparisonLoading(false);
+      }
+    },
+    [challengeId],
+  );
+
+  const handleBackToLeaderboard = useCallback(() => {
+    setComparison(null);
+    setMySubmission(null);
   }, []);
 
   const handlePick = (player: PlayerCard) => {
@@ -174,39 +308,96 @@ export default function PlayPage() {
   };
 
   const handleSubmit = async () => {
-    if (!game?.game_id) {
-      setError("Missing game session. Start a new draft.");
-      return;
-    }
-    if (!isLineupComplete(lineup)) {
-      setError("Fill all 11 slots before submitting.");
-      return;
-    }
+    if (!game?.game_id || !isLineupComplete(lineup)) return;
     setSubmitting(true);
-    setError(null);
     try {
       const payload: Record<string, string> = {};
       for (let s = 1; s <= 11; s++) payload[String(s)] = lineup[s];
+
+      if (challengeId && challengeMeta && !challengeMeta.viewer_is_creator) {
+        const result = await submitChallenge(challengeId, {
+          game_id: game.game_id,
+          lineup: payload,
+        });
+        setScore(result.your_score);
+        setLeaderboard(result.leaderboard);
+        setComparison(null);
+        setMySubmission(null);
+        clearDraftState();
+        setPhase("result");
+        return;
+      }
+
       const result = await scoreTeam(game.game_id, payload, settings, mode);
       setScore(result);
-      const isBest = saveBestScore({
-        team_score: result.team_score,
-        raw_score: result.raw_score,
-        total_credits: result.total_credits,
-        achieved_at: new Date().toISOString(),
-        mode,
-        format: result.format,
-        wicket_mode: result.wicket_mode,
-        lineup: result.breakdown,
-      });
-      setIsNewBest(isBest);
-      setBest(getBestScore(mode, settings));
+      if (!challengeId) {
+        const isBest = saveBestScore({
+          team_score: result.team_score,
+          raw_score: result.raw_score,
+          total_credits: result.total_credits,
+          achieved_at: new Date().toISOString(),
+          mode,
+          format: result.format,
+          wicket_mode: result.wicket_mode,
+          lineup: result.breakdown,
+        });
+        setIsNewBest(isBest);
+        setBest(getBestScore(mode, settings));
+      }
       setPhase("result");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Scoring failed");
+      const message = err instanceof Error ? err.message : "Scoring failed";
+      if (
+        challengeId &&
+        message.toLowerCase().includes("already submitted")
+      ) {
+        clearDraftState();
+        try {
+          const board = await loadChallengeLeaderboard(challengeId);
+          setLeaderboard(board);
+          setComparison(null);
+          setMySubmission(null);
+          setPhase("result");
+          return;
+        } catch {
+          router.replace(challengeId ? `/c/${challengeId}` : "/");
+        }
+      }
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const doCreateChallenge = useCallback(async () => {
+    if (!game || !score) return;
+    const payload: Record<string, string> = {};
+    for (let s = 1; s <= 11; s++) payload[String(s)] = lineup[s];
+
+    setChallengeLoading(true);
+    try {
+      const created = await createChallenge({
+        game_id: game.game_id,
+        seed: game.seed,
+        format: settings.format,
+        wicket_mode: settings.wicketMode,
+        mode,
+        lineup: payload,
+      });
+      setCreatedChallengeId(created.id);
+      setChallengeShareUrl(siteUrl(`/c/${created.id}`));
+    } catch {
+      // challenge creation unavailable — user can retry from result screen
+    } finally {
+      setChallengeLoading(false);
+    }
+  }, [game, score, lineup, settings, mode]);
+
+  const handleChallengeFriend = () => {
+    if (!user) {
+      setShowChallengeLogin(true);
+      return;
+    }
+    void doCreateChallenge();
   };
 
   const currentPool = game?.pools[currentRound - 1] ?? [];
@@ -226,7 +417,12 @@ export default function PlayPage() {
             >
               How to play
             </button>
-            {best && phase !== "result" && (
+            {user && (
+              <Link href="/profile" className="text-xs text-gold hover:underline">
+                My profile
+              </Link>
+            )}
+            {best && phase !== "result" && !challengeId && (
               <span className="hidden text-xs text-cream-muted sm:inline">
                 Best:{" "}
                 <span className="font-[family-name:var(--font-mono)] text-gold">
@@ -247,6 +443,16 @@ export default function PlayPage() {
       </header>
 
       <div className="mx-auto max-w-7xl px-4 py-6">
+        {challengeMeta && phase === "draft" && challengeMeta.creator_score != null && (
+          <div className="mb-4 rounded-lg border border-gold/30 bg-gold/5 px-4 py-2.5 text-center text-xs text-cream-muted">
+            Beat{" "}
+            <span className="font-semibold text-gold">
+              {userDisplayName(challengeMeta.creator?.display_name, "friend")}&apos;s {challengeMeta.creator_score}
+            </span>{" "}
+            — same pools, your XI
+          </div>
+        )}
+
         {resumed && !loading && phase === "draft" && (
           <div className="mb-4 rounded-lg border border-gold/30 bg-gold/5 px-4 py-2.5 text-center text-xs text-cream-muted">
             Draft resumed — same picks and pools as before refresh.
@@ -260,16 +466,23 @@ export default function PlayPage() {
           </div>
         )}
 
-        {error && (
-          <div className="mb-6 rounded-lg border border-crimson/40 bg-crimson/10 px-4 py-3 text-sm text-crimson">
-            {error}
-            <button
-              type="button"
-              onClick={initGame}
-              className="ml-3 underline hover:no-underline"
-            >
-              Start new draft
-            </button>
+        {bootFailed && !loading && !game && (
+          <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 text-center">
+            <p className="text-sm text-cream-muted">Ready when you are.</p>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              {!challengeId && (
+                <button
+                  type="button"
+                  onClick={() => initGame()}
+                  className="btn-gold rounded-xl px-8 py-3 text-sm"
+                >
+                  Start draft
+                </button>
+              )}
+              <Link href="/" className="btn-outline rounded-xl px-8 py-3 text-sm">
+                Home
+              </Link>
+            </div>
           </div>
         )}
 
@@ -295,15 +508,47 @@ export default function PlayPage() {
           />
         )}
 
-        {!loading && phase === "result" && score && (
+        {!loading && comparisonLoading && (
+          <div className="flex min-h-[30vh] flex-col items-center justify-center gap-3">
+            <div className="h-7 w-7 animate-spin rounded-full border-2 border-gold border-t-transparent" />
+            <p className="text-sm text-cream-muted">Loading comparison…</p>
+          </div>
+        )}
+
+        {!loading && !comparisonLoading && phase === "result" && (score || comparison || leaderboard || mySubmission) && (
           <ResultScreen
             score={score}
             mode={mode}
             isNewBest={isNewBest}
-            onPlayAgain={initGame}
+            onPlayAgain={
+              challengeId
+                ? undefined
+                : () => initGame()
+            }
+            challengeId={createdChallengeId ?? challengeId}
+            challengeShareUrl={challengeShareUrl}
+            onChallengeFriend={
+              !challengeId && score ? handleChallengeFriend : undefined
+            }
+            challengeLoading={challengeLoading}
+            leaderboard={leaderboard}
+            comparison={comparison}
+            mySubmission={mySubmission}
+            viewerUserId={user?.id}
+            onSelectPlayer={handleSelectPlayer}
+            onBackToLeaderboard={handleBackToLeaderboard}
           />
         )}
       </div>
+
+      <GoogleSignInModal
+        open={showChallengeLogin}
+        onClose={() => setShowChallengeLogin(false)}
+        onSuccess={() => {
+          setShowChallengeLogin(false);
+          void doCreateChallenge();
+        }}
+      />
 
       <HowToPlayModal
         open={showHowTo}
@@ -313,5 +558,19 @@ export default function PlayPage() {
 
       <SiteFooter className="mt-8" />
     </main>
+  );
+}
+
+export default function PlayPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center text-cream-muted">
+          Loading…
+        </div>
+      }
+    >
+      <PlayPageContent />
+    </Suspense>
   );
 }
