@@ -1,14 +1,16 @@
 import type { PlayerCard } from "@/lib/types";
 import { PoolStatsRow } from "./PlayerStats";
 import { PlayerMetaLine } from "./PlayerMetaLine";
+import { PlayerDisplayName } from "./PlayerDisplayName";
 
 interface Props {
   player: PlayerCard;
   onPick: () => void;
   showStats?: boolean;
+  formatId?: string;
 }
 
-export function PoolPlayerRow({ player, onPick, showStats = true }: Props) {
+export function PoolPlayerRow({ player, onPick, showStats = true, formatId }: Props) {
   const ratings = player.ratings;
   const statsHidden = !showStats || !ratings;
 
@@ -20,7 +22,7 @@ export function PoolPlayerRow({ player, onPick, showStats = true }: Props) {
     >
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium leading-tight text-cream">
-          {player.full_name}
+          <PlayerDisplayName player={player} formatId={formatId} />
         </p>
         <PlayerMetaLine
           country={player.country}

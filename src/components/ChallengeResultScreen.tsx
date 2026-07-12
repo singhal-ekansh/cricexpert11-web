@@ -73,6 +73,8 @@ export function ChallengeResultScreen({
   const sideA = {
     wk_penalty: a.wk_penalty,
     credit_penalty: a.credit_penalty,
+    overseas_penalty: a.overseas_penalty,
+    overseas_players_over_limit: a.overseas_players_over_limit,
     credits_over_budget: a.credits_over_budget,
     credit_budget: a.credit_budget,
     total_credits: a.total_credits,
@@ -80,6 +82,8 @@ export function ChallengeResultScreen({
   const sideB = {
     wk_penalty: b.wk_penalty,
     credit_penalty: b.credit_penalty,
+    overseas_penalty: b.overseas_penalty,
+    overseas_players_over_limit: b.overseas_players_over_limit,
     credits_over_budget: b.credits_over_budget,
     credit_budget: b.credit_budget,
     total_credits: b.total_credits,

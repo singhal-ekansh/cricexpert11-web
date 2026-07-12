@@ -85,6 +85,8 @@ export interface ScoreResponse {
   credits_over_budget: number;
   wk_penalty: number;
   credit_penalty: number;
+  overseas_penalty?: number;
+  overseas_players_over_limit?: number;
   format: string;
   format_label: string;
   wicket_mode: string;
@@ -194,6 +196,8 @@ export interface ChallengeComparison {
     raw_score: number;
     wk_penalty: number;
     credit_penalty: number;
+    overseas_penalty?: number;
+    overseas_players_over_limit?: number;
     credits_over_budget: number;
     credit_budget: number;
     breakdown: SlotBreakdown[];
@@ -205,6 +209,8 @@ export interface ChallengeComparison {
     raw_score: number;
     wk_penalty: number;
     credit_penalty: number;
+    overseas_penalty?: number;
+    overseas_players_over_limit?: number;
     credits_over_budget: number;
     credit_budget: number;
     breakdown: SlotBreakdown[];
@@ -247,6 +253,8 @@ export interface ChallengeMySubmission {
   raw_score: number;
   wk_penalty: number;
   credit_penalty: number;
+  overseas_penalty?: number;
+  overseas_players_over_limit?: number;
   credits_over_budget: number;
   credit_budget: number;
   breakdown: SlotBreakdown[];

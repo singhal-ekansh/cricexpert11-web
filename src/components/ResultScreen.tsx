@@ -83,6 +83,8 @@ export function ResultScreen({
   const penaltyFields = {
     wk_penalty: score.wk_penalty,
     credit_penalty: score.credit_penalty,
+    overseas_penalty: score.overseas_penalty,
+    overseas_players_over_limit: score.overseas_players_over_limit,
     credits_over_budget: score.credits_over_budget,
     credit_budget: score.credit_budget,
     total_credits: score.total_credits,

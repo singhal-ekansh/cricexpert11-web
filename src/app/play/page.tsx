@@ -505,6 +505,7 @@ function PlayPageContent() {
             creditBudget={game.credit_budget}
             formatLabel={game.format_label}
             wicketLabel={game.wicket_mode_label}
+            formatId={game.format}
           />
         )}
 

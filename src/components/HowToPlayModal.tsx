@@ -139,6 +139,10 @@ export function HowToPlayModal({ open, onClose, creditBudget }: Props) {
                 hurts your score.
               </li>
               <li>Pick a wicketkeeper or take a penalty.</li>
+              <li>
+                In IPL, your XI can include at most 4 overseas (non-Indian)
+                players — extra overseas picks are penalised.
+              </li>
             </ul>
           </Section>
         </div>

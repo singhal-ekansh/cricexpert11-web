@@ -26,6 +26,8 @@ export function ChallengeMyTeamScreen({
   const penaltyFields = {
     wk_penalty: submission.wk_penalty,
     credit_penalty: submission.credit_penalty,
+    overseas_penalty: submission.overseas_penalty,
+    overseas_players_over_limit: submission.overseas_players_over_limit,
     credits_over_budget: submission.credits_over_budget,
     credit_budget: submission.credit_budget,
     total_credits: submission.total_credits,

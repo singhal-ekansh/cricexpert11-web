@@ -12,8 +12,11 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import type { GameMode, PlayerCard } from "@/lib/types";
 import { reorderLineup, sortPoolByRole } from "@/lib/draft";
+import { countOverseasPlayers, IPL_OVERSEAS_LIMIT } from "@/lib/ipl";
 import { DraftSlotRow } from "./DraftSlotRow";
 import { DragHandleIcon } from "./DragHandleIcon";
+import { OverseasPlaneIcon } from "./OverseasPlaneIcon";
+import { PlayerDisplayName } from "./PlayerDisplayName";
 import { PoolPlayerRow } from "./PoolPlayerRow";
 
 interface Props {
@@ -34,6 +37,7 @@ interface Props {
   creditBudget: number;
   formatLabel?: string;
   wicketLabel?: string;
+  formatId?: string;
 }
 
 export function DraftBoard({
@@ -54,6 +58,7 @@ export function DraftBoard({
   creditBudget,
   formatLabel,
   wicketLabel,
+  formatId,
 }: Props) {
   const [activePlayer, setActivePlayer] = useState<PlayerCard | null>(null);
   const filled = Array.from({ length: 11 }, (_, i) => lineup[i + 1]).filter(Boolean)
@@ -68,6 +73,12 @@ export function DraftBoard({
   );
   const sortedPool = useMemo(() => sortPoolByRole(pool), [pool]);
   const overBudget = totalCredits > creditBudget;
+  const overseasCount = useMemo(
+    () => countOverseasPlayers(lineup, playerMap, formatId),
+    [lineup, playerMap, formatId],
+  );
+  const overOverseasLimit =
+    formatId === "ipl" && overseasCount > IPL_OVERSEAS_LIMIT;
   const progress = draftComplete ? 100 : ((round - 1) / totalRounds) * 100;
 
   const sensors = useSensors(
@@ -139,6 +150,16 @@ export function DraftBoard({
               >
                 {totalCredits}/{creditBudget} cr
               </p>
+              {formatId === "ipl" && (
+                <p
+                  className={`mt-0.5 inline-flex items-center justify-end gap-1 text-xs font-[family-name:var(--font-mono)] ${
+                    overOverseasLimit ? "text-crimson" : "text-cream-muted"
+                  }`}
+                >
+                  {overseasCount}/{IPL_OVERSEAS_LIMIT}
+                  <OverseasPlaneIcon size={12} className="text-sky-300/85" />
+                </p>
+              )}
             </div>
           </div>
           <div className="mt-3 h-1 overflow-hidden rounded-full bg-bg-panel">
@@ -192,6 +213,7 @@ export function DraftBoard({
                     key={player.player_id}
                     player={player}
                     showStats={showStats}
+                    formatId={formatId}
                     onPick={() => onPick(player)}
                   />
                 ))
@@ -227,6 +249,7 @@ export function DraftBoard({
                         slot={slot}
                         player={player}
                         showStats={showStats}
+                        formatId={formatId}
                       />
                     );
                   })
@@ -264,7 +287,9 @@ export function DraftBoard({
       <DragOverlay>
         {activePlayer ? (
           <div className="rounded-xl border border-accent/40 bg-bg-card px-4 py-3 shadow-xl">
-            <p className="font-medium text-cream">{activePlayer.full_name}</p>
+            <p className="font-medium text-cream">
+              <PlayerDisplayName player={activePlayer} formatId={formatId} />
+            </p>
             {activePlayer.country ? (
               <p className="text-xs text-cream-muted">{activePlayer.country}</p>
             ) : null}

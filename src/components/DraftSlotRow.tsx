@@ -5,15 +5,17 @@ import { CSS } from "@dnd-kit/utilities";
 import type { PlayerCard } from "@/lib/types";
 import { PoolStatsRow } from "./PlayerStats";
 import { DragHandleIcon } from "./DragHandleIcon";
+import { PlayerDisplayName } from "./PlayerDisplayName";
 import { PlayerMetaLine } from "./PlayerMetaLine";
 
 interface DraftSlotRowProps {
   slot: number;
   player: PlayerCard | null;
   showStats?: boolean;
+  formatId?: string;
 }
 
-export function DraftSlotRow({ slot, player, showStats = true }: DraftSlotRowProps) {
+export function DraftSlotRow({ slot, player, showStats = true, formatId }: DraftSlotRowProps) {
   const { setNodeRef, isOver } = useDroppable({ id: `slot-${slot}` });
 
   return (
@@ -25,7 +27,7 @@ export function DraftSlotRow({ slot, player, showStats = true }: DraftSlotRowPro
       ].join(" ")}
     >
       {player ? (
-        <DraggablePlayer slot={slot} player={player} showStats={showStats} />
+        <DraggablePlayer slot={slot} player={player} showStats={showStats} formatId={formatId} />
       ) : (
         <div className="draft-slot-empty flex items-center gap-3 rounded-lg px-3 py-2.5">
           <span className="w-5 shrink-0 text-center font-[family-name:var(--font-mono)] text-xs text-cream-muted">
@@ -42,10 +44,12 @@ function DraggablePlayer({
   slot,
   player,
   showStats,
+  formatId,
 }: {
   slot: number;
   player: PlayerCard;
   showStats: boolean;
+  formatId?: string;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -81,7 +85,7 @@ function DraggablePlayer({
       </span>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium leading-tight text-cream">
-          {player.full_name}
+          <PlayerDisplayName player={player} formatId={formatId} />
         </p>
         <PlayerMetaLine
           country={player.country}

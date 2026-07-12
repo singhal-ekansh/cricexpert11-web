@@ -10,6 +10,8 @@ const COUNTRY_CODES: Record<string, string> = {
   "Sri Lanka": "SL",
   "West Indies": "WI",
   Zimbabwe: "ZIM",
+  Afghanistan: "AFG",
+  Ireland: "IRE",
 };
 
 export function countryCode(country: string): string {
