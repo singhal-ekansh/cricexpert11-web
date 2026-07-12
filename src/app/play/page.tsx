@@ -103,6 +103,7 @@ function PlayPageContent() {
   const [showDailyLogin, setShowDailyLogin] = useState(false);
   const [dailyPuzzleId, setDailyPuzzleId] = useState<string | null>(null);
   const [dailyLeaderboard, setDailyLeaderboard] = useState<DailyLeaderboard | null>(null);
+  const [dailyLoadingLeaderboard, setDailyLoadingLeaderboard] = useState(false);
   const lastBootKey = useRef<string | null>(null);
   const lineupRef = useRef(lineup);
   const pendingDailySubmit = useRef(false);
@@ -199,8 +200,17 @@ function PlayPageContent() {
 
     const boot = async () => {
       if (isDaily) {
+        const wantsLeaderboard = viewDailyLeaderboard;
+        setDailyLoadingLeaderboard(wantsLeaderboard);
         setLoading(true);
         setBootFailed(false);
+        if (wantsLeaderboard) {
+          setGame(null);
+          setPicks([]);
+          setLineup({});
+          setScore(null);
+          setPhase("result");
+        }
         try {
           const today = await getDailyPuzzleToday();
           if (!today.is_active) {
@@ -216,6 +226,7 @@ function PlayPageContent() {
           setMode(today.mode);
 
           if (freshStart) {
+            setDailyLoadingLeaderboard(false);
             clearDraftState();
             const data = await startDailyPuzzle();
             setGame(data);
@@ -230,14 +241,16 @@ function PlayPageContent() {
           }
 
           const alreadyPlayed = (today.viewer?.attempt_count ?? 0) >= 1;
-          if (viewDailyLeaderboard || alreadyPlayed) {
+          if (wantsLeaderboard || alreadyPlayed) {
+            setDailyLoadingLeaderboard(true);
             await showDailyLeaderboard(today.puzzle_id);
-            if (!viewDailyLeaderboard) {
-              router.replace("/play?daily=1&view=leaderboard", { scroll: false });
+            if (!wantsLeaderboard) {
+              window.history.replaceState(null, "", "/play?daily=1&view=leaderboard");
             }
             return;
           }
 
+          setDailyLoadingLeaderboard(false);
           const saved = loadDraftState();
           if (
             saved &&
@@ -697,7 +710,11 @@ function PlayPageContent() {
         {loading && (
           <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-gold border-t-transparent" />
-            <p className="text-sm text-cream-muted">Generating draft pools…</p>
+            <p className="text-sm text-cream-muted">
+              {isDaily && dailyLoadingLeaderboard
+                ? "Loading leaderboard…"
+                : "Generating draft pools…"}
+            </p>
           </div>
         )}
 

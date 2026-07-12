@@ -1,9 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { getDailyPuzzleToday } from "@/lib/api";
-import { formatCountdown, msUntil } from "@/lib/daily";
+import {
+  formatCountdown,
+  getCachedDailyPuzzleToday,
+  msUntil,
+  setCachedDailyPuzzleToday,
+} from "@/lib/daily";
 import type { DailyPuzzleToday } from "@/lib/types";
 import { ordinalRank } from "@/lib/rank";
 
@@ -12,15 +17,26 @@ export function DailyChallengeCard() {
   const [puzzle, setPuzzle] = useState<DailyPuzzleToday | null>(null);
   const [countdown, setCountdown] = useState("");
   const [loading, setLoading] = useState(true);
+  const [navigating, setNavigating] = useState(false);
+
+  useLayoutEffect(() => {
+    const cached = getCachedDailyPuzzleToday();
+    if (cached) {
+      setPuzzle(cached);
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     let active = true;
     getDailyPuzzleToday()
       .then((data) => {
-        if (active) setPuzzle(data);
+        if (!active) return;
+        setPuzzle(data);
+        setCachedDailyPuzzleToday(data);
       })
       .catch(() => {
-        if (active) setPuzzle(null);
+        if (active && !getCachedDailyPuzzleToday()) setPuzzle(null);
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -41,7 +57,7 @@ export function DailyChallengeCard() {
   if (loading) {
     return (
       <div className="rounded-xl border border-border/80 bg-bg-card/40 px-4 py-3 text-center text-xs text-cream-muted">
-        Loading today&apos;s draft…
+        Loading daily challenge…
       </div>
     );
   }
@@ -55,11 +71,23 @@ export function DailyChallengeCard() {
   return (
     <button
       type="button"
+      disabled={navigating}
       onClick={() => {
-        const played = (puzzle.viewer?.attempt_count ?? 0) >= 1;
-        router.push(
-          played ? "/play?daily=1&view=leaderboard" : "/play?daily=1",
-        );
+        setNavigating(true);
+        void getDailyPuzzleToday()
+          .then((today) => {
+            setCachedDailyPuzzleToday(today);
+            const played = (today.viewer?.attempt_count ?? 0) >= 1;
+            router.push(
+              played ? "/play?daily=1&view=leaderboard" : "/play?daily=1",
+            );
+          })
+          .catch(() => {
+            router.push("/play?daily=1");
+          })
+          .finally(() => {
+            setNavigating(false);
+          });
       }}
       className="w-full rounded-xl border border-gold/30 bg-gold/10 px-4 py-3.5 text-left transition-colors hover:border-gold/50 hover:bg-gold/15"
     >
