@@ -128,11 +128,21 @@ export function createChallenge(payload: {
   wicket_mode: string;
   mode: GameMode;
   lineup: Record<string, string>;
+  pool_player_ids: string[][];
 }): Promise<CreateChallengeResponse> {
   return apiFetch<CreateChallengeResponse>("/api/v1/challenges", {
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export function startChallengeDraft(
+  challengeId: string,
+): Promise<GameStartResponse> {
+  return apiFetch<GameStartResponse>(
+    `/api/v1/challenges/${challengeId}/start-draft`,
+    { method: "POST" },
+  );
 }
 
 export function getChallenge(challengeId: string): Promise<ChallengeDetail> {

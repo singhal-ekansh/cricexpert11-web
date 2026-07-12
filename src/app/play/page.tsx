@@ -18,6 +18,7 @@ import {
   getChallengeMySubmission,
   scoreTeam,
   siteUrl,
+  startChallengeDraft,
   startGame,
   submitChallenge,
 } from "@/lib/api";
@@ -193,12 +194,24 @@ function PlayPageContent() {
             format: meta.format,
             wicketMode: meta.wicket_mode,
           };
-          await initGame({
-            seed: meta.seed,
-            settings: challengeSettings,
-            mode: meta.mode,
-            keepChallenge: true,
-          });
+          setSettings(challengeSettings);
+          setMode(meta.mode);
+          setLoading(true);
+          setBootFailed(false);
+          setPhase("draft");
+          setCurrentRound(1);
+          setPicks([]);
+          setLineup({});
+          setScore(null);
+          setIsNewBest(false);
+          try {
+            const data = await startChallengeDraft(challengeId);
+            setGame(data);
+          } catch {
+            setBootFailed(true);
+          } finally {
+            setLoading(false);
+          }
         } catch {
           router.replace("/");
           setLoading(false);
@@ -402,6 +415,10 @@ function PlayPageContent() {
       return;
     }
 
+    const poolPlayerIds = game.pools.map((pool) =>
+      pool.map((player) => player.player_id),
+    );
+
     setChallengeLoading(true);
     setChallengeError(null);
     try {
@@ -412,6 +429,7 @@ function PlayPageContent() {
         wicket_mode: game.wicket_mode,
         mode: game.mode ?? mode,
         lineup: payload,
+        pool_player_ids: poolPlayerIds,
       });
       setCreatedChallengeId(created.id);
       setChallengeShareUrl(siteUrl(`/c/${created.id}`));
