@@ -395,15 +395,22 @@ function PlayPageContent() {
     const payload: Record<string, string> = {};
     for (let s = 1; s <= 11; s++) payload[String(s)] = lineup[s];
 
+    const allowed = new Set(game.pools.flat().map((player) => player.player_id));
+    const invalid = Object.values(payload).filter((playerId) => !allowed.has(playerId));
+    if (invalid.length > 0) {
+      setChallengeError("Your lineup doesn't match this draft. Try drafting again.");
+      return;
+    }
+
     setChallengeLoading(true);
     setChallengeError(null);
     try {
       const created = await createChallenge({
         game_id: game.game_id,
         seed: game.seed,
-        format: settings.format,
-        wicket_mode: settings.wicketMode,
-        mode,
+        format: game.format,
+        wicket_mode: game.wicket_mode,
+        mode: game.mode ?? mode,
         lineup: payload,
       });
       setCreatedChallengeId(created.id);
@@ -415,7 +422,7 @@ function PlayPageContent() {
     } finally {
       setChallengeLoading(false);
     }
-  }, [game, score, lineup, settings, mode]);
+  }, [game, score, lineup, mode]);
 
   const handleChallengeFriend = () => {
     if (!user) {
