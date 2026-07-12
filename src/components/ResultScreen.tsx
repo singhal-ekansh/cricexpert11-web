@@ -13,6 +13,7 @@ import { ChallengeMyTeamScreen } from "./ChallengeMyTeamScreen";
 import { ChallengeResultScreen } from "./ChallengeResultScreen";
 import { ChallengeSharePanel } from "./ChallengeSharePanel";
 import { ResultBreakdownTable } from "./ResultBreakdownTable";
+import { clearDraftState } from "@/lib/storage";
 
 interface Props {
   score?: ScoreResponse | null;
@@ -23,6 +24,7 @@ interface Props {
   challengeShareUrl?: string | null;
   onChallengeFriend?: () => void;
   challengeLoading?: boolean;
+  challengeError?: string | null;
   leaderboard?: ChallengeLeaderboard | null;
   comparison?: ChallengeComparison | null;
   mySubmission?: ChallengeMySubmission | null;
@@ -40,6 +42,7 @@ export function ResultScreen({
   challengeShareUrl,
   onChallengeFriend,
   challengeLoading,
+  challengeError,
   leaderboard,
   comparison,
   mySubmission,
@@ -125,6 +128,11 @@ export function ResultScreen({
         )}
 
         <div className="mt-6 flex flex-col items-stretch justify-center gap-3 sm:mt-8 sm:flex-row sm:items-center sm:justify-center">
+          {challengeError && (
+            <p className="w-full text-center text-sm text-crimson sm:col-span-full">
+              {challengeError}
+            </p>
+          )}
           {onChallengeFriend && !challengeShareUrl && (
             <button
               type="button"
@@ -146,6 +154,7 @@ export function ResultScreen({
           )}
           <Link
             href="/"
+            onClick={clearDraftState}
             className="btn-outline rounded-xl px-10 py-3.5 text-center text-sm sm:min-w-[10rem] sm:py-4"
           >
             Home

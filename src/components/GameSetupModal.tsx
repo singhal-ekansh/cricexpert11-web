@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { GameLogo } from "@/components/GameLogo";
 import { HomeGameSetup } from "@/components/HomeGameSetup";
+import { clearDraftState } from "@/lib/storage";
 import type { GameMode, GameOption, GameSettings } from "@/lib/types";
 
 interface Props {
@@ -94,8 +95,11 @@ export function GameSetupModal({
         <div className="border-t border-border px-5 py-4">
           {ready ? (
             <Link
-              href="/play"
-              onClick={onClose}
+              href="/play?fresh=1"
+              onClick={() => {
+                clearDraftState();
+                onClose();
+              }}
               className="btn-gold block w-full rounded-xl px-6 py-3.5 text-center text-sm font-semibold"
             >
               Start draft

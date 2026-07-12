@@ -149,9 +149,18 @@ export function clearDraftState(): void {
   }
 }
 
+export function isPageReload(): boolean {
+  if (typeof window === "undefined") return false;
+  const nav = performance.getEntriesByType("navigation")[0] as
+    | PerformanceNavigationTiming
+    | undefined;
+  if (nav?.type === "reload") return true;
+  const legacy = performance as Performance & { navigation?: { type: number } };
+  return legacy.navigation?.type === 1;
+}
+
 function draftAgeOk(saved: SavedDraftState): boolean {
   if (!saved.game?.game_id) return false;
-  if (saved.phase !== "draft" && saved.phase !== "result") return false;
   const age = Date.now() - new Date(saved.savedAt).getTime();
   return age <= DRAFT_TTL_MS;
 }
@@ -167,8 +176,17 @@ export function isDraftResumableFor(
   return draftAgeOk(saved);
 }
 
+export function isInProgressDraftResumable(
+  saved: SavedDraftState,
+  mode: GameMode = getGameMode(),
+  settings: GameSettings = getGameSettings(),
+): boolean {
+  if (saved.phase !== "draft") return false;
+  return isDraftResumableFor(saved, mode, settings);
+}
+
 export function isDraftResumable(saved: SavedDraftState): boolean {
-  return isDraftResumableFor(saved, getGameMode(), getGameSettings());
+  return isInProgressDraftResumable(saved);
 }
 
 export function isChallengeDraftResumable(
@@ -186,6 +204,7 @@ export function isChallengeDraftResumable(
     wicketMode: meta.wicket_mode,
   };
   if (!isDraftResumableFor(saved, meta.mode, challengeSettings)) return false;
+  if (saved.phase !== "draft") return false;
   if (saved.challengeId !== challengeId) return false;
   if (saved.game.seed !== meta.seed) return false;
   return true;

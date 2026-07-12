@@ -28,8 +28,9 @@ import {
   getBestScore,
   getGameMode,
   getGameSettings,
-  isDraftResumable,
   isChallengeDraftResumable,
+  isInProgressDraftResumable,
+  isPageReload,
   loadDraftState,
   saveBestScore,
   saveDraftState,
@@ -62,6 +63,7 @@ function PlayPageContent() {
   const router = useRouter();
   const challengeId = searchParams.get("challenge");
   const viewResult = searchParams.get("view") === "result";
+  const freshStart = searchParams.get("fresh") === "1";
   const { user } = useAuth();
 
   const [loading, setLoading] = useState(true);
@@ -86,6 +88,7 @@ function PlayPageContent() {
   const [createdChallengeId, setCreatedChallengeId] = useState<string | null>(null);
   const [challengeShareUrl, setChallengeShareUrl] = useState<string | null>(null);
   const [challengeLoading, setChallengeLoading] = useState(false);
+  const [challengeError, setChallengeError] = useState<string | null>(null);
   const [showChallengeLogin, setShowChallengeLogin] = useState(false);
   const booted = useRef(false);
   const showStats = mode === "easy";
@@ -153,7 +156,7 @@ function PlayPageContent() {
   );
 
   useEffect(() => {
-    if (booted.current) return;
+    if (booted.current && !freshStart) return;
     booted.current = true;
 
     const boot = async () => {
@@ -204,21 +207,34 @@ function PlayPageContent() {
       }
 
       const saved = loadDraftState();
-      if (saved && isDraftResumable(saved)) {
+      const mode = getGameMode();
+      const settings = getGameSettings();
+
+      if (freshStart) {
+        clearDraftState();
+        await initGame({ settings, mode });
+        router.replace("/play", { scroll: false });
+        return;
+      }
+
+      if (
+        saved &&
+        isPageReload() &&
+        isInProgressDraftResumable(saved, mode, settings)
+      ) {
         restoreDraft(saved);
         return;
       }
       if (saved) clearDraftState();
 
-      initGame();
+      await initGame({ settings, mode });
     };
 
     void boot();
-  }, [challengeId, viewResult, initGame, restoreDraft, router]);
+  }, [challengeId, viewResult, freshStart, initGame, restoreDraft, router]);
 
   useEffect(() => {
-    if (loading || !game) return;
-    if (phase !== "draft" && phase !== "result") return;
+    if (loading || !game || phase !== "draft") return;
     saveDraftState({
       challengeId: challengeId ?? undefined,
       mode,
@@ -349,6 +365,7 @@ function PlayPageContent() {
         setIsNewBest(isBest);
         setBest(getBestScore(mode, settings));
       }
+      clearDraftState();
       setPhase("result");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Scoring failed";
@@ -379,6 +396,7 @@ function PlayPageContent() {
     for (let s = 1; s <= 11; s++) payload[String(s)] = lineup[s];
 
     setChallengeLoading(true);
+    setChallengeError(null);
     try {
       const created = await createChallenge({
         game_id: game.game_id,
@@ -390,8 +408,10 @@ function PlayPageContent() {
       });
       setCreatedChallengeId(created.id);
       setChallengeShareUrl(siteUrl(`/c/${created.id}`));
-    } catch {
-      // challenge creation unavailable — user can retry from result screen
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Could not create challenge";
+      setChallengeError(message);
     } finally {
       setChallengeLoading(false);
     }
@@ -536,6 +556,7 @@ function PlayPageContent() {
               !challengeId && score ? handleChallengeFriend : undefined
             }
             challengeLoading={challengeLoading}
+            challengeError={challengeError}
             leaderboard={leaderboard}
             comparison={comparison}
             mySubmission={mySubmission}

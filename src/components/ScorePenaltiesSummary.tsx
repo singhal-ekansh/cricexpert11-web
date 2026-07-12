@@ -8,11 +8,16 @@ export interface PenaltyFields {
   total_credits?: number;
 }
 
+function asScoreDeduction(value: number | undefined): number {
+  if (!value) return 0;
+  return value > 0 ? -value : value;
+}
+
 export function normalizePenalties(fields: PenaltyFields) {
   return {
-    wk_penalty: fields.wk_penalty ?? 0,
-    credit_penalty: fields.credit_penalty ?? 0,
-    overseas_penalty: fields.overseas_penalty ?? 0,
+    wk_penalty: asScoreDeduction(fields.wk_penalty),
+    credit_penalty: asScoreDeduction(fields.credit_penalty),
+    overseas_penalty: asScoreDeduction(fields.overseas_penalty),
     overseas_players_over_limit: fields.overseas_players_over_limit ?? 0,
     credits_over_budget: fields.credits_over_budget ?? 0,
     credit_budget: fields.credit_budget,
@@ -21,8 +26,8 @@ export function normalizePenalties(fields: PenaltyFields) {
 }
 
 export function formatPenalty(value: number): string {
-  if (value > 0) return `+${value}`;
-  return String(value);
+  const deduction = value > 0 ? -value : value;
+  return String(deduction);
 }
 
 export interface PenaltyLine {
