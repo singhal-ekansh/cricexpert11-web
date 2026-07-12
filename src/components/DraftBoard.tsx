@@ -38,6 +38,7 @@ interface Props {
   formatLabel?: string;
   wicketLabel?: string;
   formatId?: string;
+  fixedPoolOrder?: boolean;
 }
 
 export function DraftBoard({
@@ -59,6 +60,7 @@ export function DraftBoard({
   formatLabel,
   wicketLabel,
   formatId,
+  fixedPoolOrder = false,
 }: Props) {
   const [activePlayer, setActivePlayer] = useState<PlayerCard | null>(null);
   const filled = Array.from({ length: 11 }, (_, i) => lineup[i + 1]).filter(Boolean)
@@ -71,7 +73,10 @@ export function DraftBoard({
       ),
     [lineup, playerMap],
   );
-  const sortedPool = useMemo(() => sortPoolByRole(pool), [pool]);
+  const sortedPool = useMemo(
+    () => (fixedPoolOrder ? pool : sortPoolByRole(pool)),
+    [pool, fixedPoolOrder],
+  );
   const overBudget = totalCredits > creditBudget;
   const overseasCount = useMemo(
     () => countOverseasPlayers(lineup, playerMap, formatId),

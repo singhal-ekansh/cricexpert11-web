@@ -29,6 +29,7 @@ import {
   getGameMode,
   getGameSettings,
   isDraftResumable,
+  isChallengeDraftResumable,
   loadDraftState,
   saveBestScore,
   saveDraftState,
@@ -179,7 +180,7 @@ function PlayPageContent() {
           }
 
           const saved = loadDraftState();
-          if (saved && isDraftResumable(saved)) {
+          if (saved && isChallengeDraftResumable(saved, challengeId, meta)) {
             restoreDraft(saved);
             return;
           }
@@ -219,6 +220,7 @@ function PlayPageContent() {
     if (loading || !game) return;
     if (phase !== "draft" && phase !== "result") return;
     saveDraftState({
+      challengeId: challengeId ?? undefined,
       mode,
       settings,
       game,
@@ -232,6 +234,7 @@ function PlayPageContent() {
   }, [
     loading,
     game,
+    challengeId,
     mode,
     settings,
     picks,
@@ -506,6 +509,7 @@ function PlayPageContent() {
             formatLabel={game.format_label}
             wicketLabel={game.wicket_mode_label}
             formatId={game.format}
+            fixedPoolOrder={!!challengeId}
           />
         )}
 

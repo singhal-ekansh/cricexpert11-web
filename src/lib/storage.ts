@@ -15,6 +15,7 @@ const DRAFT_TTL_MS = 4 * 60 * 60 * 1000;
 
 export interface SavedDraftState {
   savedAt: string;
+  challengeId?: string;
   mode: GameMode;
   settings: GameSettings;
   game: GameStartResponse;
@@ -148,15 +149,44 @@ export function clearDraftState(): void {
   }
 }
 
-export function isDraftResumable(saved: SavedDraftState): boolean {
-  const mode = getGameMode();
-  const settings = getGameSettings();
-  if (saved.mode !== mode) return false;
-  if (saved.settings.format !== settings.format) return false;
-  if (saved.settings.wicketMode !== settings.wicketMode) return false;
+function draftAgeOk(saved: SavedDraftState): boolean {
   if (!saved.game?.game_id) return false;
   if (saved.phase !== "draft" && saved.phase !== "result") return false;
   const age = Date.now() - new Date(saved.savedAt).getTime();
-  if (age > DRAFT_TTL_MS) return false;
+  return age <= DRAFT_TTL_MS;
+}
+
+export function isDraftResumableFor(
+  saved: SavedDraftState,
+  mode: GameMode,
+  settings: GameSettings,
+): boolean {
+  if (saved.mode !== mode) return false;
+  if (saved.settings.format !== settings.format) return false;
+  if (saved.settings.wicketMode !== settings.wicketMode) return false;
+  return draftAgeOk(saved);
+}
+
+export function isDraftResumable(saved: SavedDraftState): boolean {
+  return isDraftResumableFor(saved, getGameMode(), getGameSettings());
+}
+
+export function isChallengeDraftResumable(
+  saved: SavedDraftState,
+  challengeId: string,
+  meta: {
+    seed: number;
+    format: string;
+    wicket_mode: string;
+    mode: GameMode;
+  },
+): boolean {
+  const challengeSettings: GameSettings = {
+    format: meta.format,
+    wicketMode: meta.wicket_mode,
+  };
+  if (!isDraftResumableFor(saved, meta.mode, challengeSettings)) return false;
+  if (saved.challengeId !== challengeId) return false;
+  if (saved.game.seed !== meta.seed) return false;
   return true;
 }
