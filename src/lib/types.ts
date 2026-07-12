@@ -283,3 +283,61 @@ export interface MyChallengesResponse {
   live: ChallengeListPage;
   completed: ChallengeListPage;
 }
+
+export interface DailyPuzzleViewer {
+  best_score: number;
+  attempt_count: number;
+  rank: number;
+}
+
+export interface DailyPuzzleToday {
+  puzzle_type: string;
+  puzzle_id: string;
+  puzzle_key: string;
+  seed: number;
+  format: string;
+  format_label: string;
+  wicket_mode: string;
+  wicket_mode_label: string;
+  mode: GameMode;
+  ends_at: string;
+  is_active: boolean;
+  player_count: number;
+  viewer?: DailyPuzzleViewer;
+}
+
+export interface DailyPuzzleStartResponse extends GameStartResponse {
+  puzzle_id: string;
+  puzzle_key: string;
+  ends_at: string;
+}
+
+export interface DailyLeaderboardEntry {
+  rank: number;
+  team_score: number;
+  attempt_count: number;
+  is_you?: boolean;
+  user: ChallengeUser;
+}
+
+export interface DailyLeaderboard {
+  puzzle_id: string;
+  puzzle_key: string;
+  ends_at: string;
+  player_count: number;
+  entries: DailyLeaderboardEntry[];
+  your_rank: number | null;
+  your_best_score: number | null;
+  your_attempt_count: number | null;
+}
+
+export interface DailySubmitResponse {
+  puzzle_id: string;
+  your_score: ScoreResponse;
+  best_score: number;
+  attempt_count: number;
+  is_new_best: boolean;
+  rank: number;
+  player_count: number;
+  leaderboard: DailyLeaderboard;
+}

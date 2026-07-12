@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
+import { DailyChallengeCard } from "@/components/DailyChallengeCard";
 import { GameLogo } from "@/components/GameLogo";
 import { GameSetupModal } from "@/components/GameSetupModal";
 import { GoogleSignInModal } from "@/components/GoogleSignInModal";
@@ -101,6 +102,7 @@ export default function HomePage() {
             </p>
 
             <div className="mt-8 space-y-2.5">
+              <DailyChallengeCard />
               <button
                 type="button"
                 onClick={() => setShowSetup(true)}

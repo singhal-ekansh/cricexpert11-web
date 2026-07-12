@@ -16,6 +16,7 @@ const DRAFT_TTL_MS = 4 * 60 * 60 * 1000;
 export interface SavedDraftState {
   savedAt: string;
   challengeId?: string;
+  dailyPuzzleId?: string;
   mode: GameMode;
   settings: GameSettings;
   game: GameStartResponse;
@@ -207,5 +208,15 @@ export function isChallengeDraftResumable(
   if (saved.phase !== "draft") return false;
   if (saved.challengeId !== challengeId) return false;
   if (saved.game.seed !== meta.seed) return false;
+  return true;
+}
+
+export function isDailyDraftResumable(
+  saved: SavedDraftState,
+  puzzleId: string,
+): boolean {
+  if (saved.phase !== "draft") return false;
+  if (saved.dailyPuzzleId !== puzzleId) return false;
+  if (!draftAgeOk(saved)) return false;
   return true;
 }

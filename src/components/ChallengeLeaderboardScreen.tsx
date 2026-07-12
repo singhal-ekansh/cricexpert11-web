@@ -6,6 +6,7 @@ import { challengePageUrl, isChallengeShareable } from "@/lib/challenge";
 import { rankWithPlayerCount } from "@/lib/rank";
 import { userDisplayName } from "@/lib/user";
 import { ChallengeSharePanel } from "./ChallengeSharePanel";
+import { CrownIcon } from "./CrownIcon";
 import { UserAvatar } from "./UserAvatar";
 
 interface Props {
@@ -62,8 +63,13 @@ export function ChallengeLeaderboardScreen({
                         ? "bg-bg-panel text-cream"
                         : "bg-bg-panel/60 text-cream-muted"
                   }`}
+                  aria-label={entry.rank === 1 ? "Rank 1" : undefined}
                 >
-                  {entry.rank}
+                  {entry.rank === 1 ? (
+                    <CrownIcon size={16} className="text-gold-bright" />
+                  ) : (
+                    entry.rank
+                  )}
                 </span>
 
                 <UserAvatar

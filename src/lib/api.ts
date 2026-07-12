@@ -12,6 +12,10 @@ import type {
   GameStartResponse,
   GameSettings,
   MyChallengesResponse,
+  DailyLeaderboard,
+  DailyPuzzleStartResponse,
+  DailyPuzzleToday,
+  DailySubmitResponse,
   ScoreResponse,
   SubmitChallengeResponse,
 } from "./types";
@@ -219,4 +223,29 @@ export function fetchMyChallenges(params?: {
 export function siteUrl(path = ""): string {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   return `${base.replace(/\/$/, "")}${path}`;
+}
+
+export function getDailyPuzzleToday(): Promise<DailyPuzzleToday> {
+  return apiFetch<DailyPuzzleToday>("/api/v1/puzzles/daily/today");
+}
+
+export function startDailyPuzzle(): Promise<DailyPuzzleStartResponse> {
+  return apiFetch<DailyPuzzleStartResponse>("/api/v1/puzzles/daily/start", {
+    method: "POST",
+  });
+}
+
+export function submitDailyPuzzle(payload: {
+  puzzle_id: string;
+  game_id: string;
+  lineup: Record<string, string>;
+}): Promise<DailySubmitResponse> {
+  return apiFetch<DailySubmitResponse>("/api/v1/puzzles/daily/submit", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getDailyLeaderboard(): Promise<DailyLeaderboard> {
+  return apiFetch<DailyLeaderboard>("/api/v1/puzzles/daily/leaderboard");
 }

@@ -17,7 +17,20 @@ export function GameLogo({
   className?: string;
   priority?: boolean;
 }) {
-  if (variant === "home" || variant === "full") {
+  if (variant === "home") {
+    return (
+      <Image
+        src={HERO}
+        alt={BRAND_NAME}
+        width={HERO_WIDTH}
+        height={HERO_HEIGHT}
+        className={`h-auto w-full max-w-[10.5rem] sm:max-w-[12.5rem] ${className}`}
+        priority={priority}
+      />
+    );
+  }
+
+  if (variant === "full") {
     return (
       <Image
         src={HERO}

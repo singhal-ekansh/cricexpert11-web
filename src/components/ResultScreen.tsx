@@ -5,6 +5,7 @@ import type {
   ChallengeComparison,
   ChallengeLeaderboard,
   ChallengeMySubmission,
+  DailyLeaderboard,
   GameMode,
   ScoreResponse,
 } from "@/lib/types";
@@ -12,6 +13,7 @@ import { ChallengeLeaderboardScreen } from "./ChallengeLeaderboardScreen";
 import { ChallengeMyTeamScreen } from "./ChallengeMyTeamScreen";
 import { ChallengeResultScreen } from "./ChallengeResultScreen";
 import { ChallengeSharePanel } from "./ChallengeSharePanel";
+import { DailyLeaderboardScreen } from "./DailyLeaderboardScreen";
 import { ResultBreakdownTable } from "./ResultBreakdownTable";
 import { clearDraftState } from "@/lib/storage";
 
@@ -31,6 +33,8 @@ interface Props {
   viewerUserId?: string | null;
   onSelectPlayer?: (userId: string, isYou: boolean) => void;
   onBackToLeaderboard?: () => void;
+  dailyLeaderboard?: DailyLeaderboard | null;
+  dailyPlayAgain?: () => void;
 }
 
 export function ResultScreen({
@@ -49,7 +53,20 @@ export function ResultScreen({
   viewerUserId,
   onSelectPlayer,
   onBackToLeaderboard,
+  dailyLeaderboard,
+  dailyPlayAgain,
 }: Props) {
+  if (dailyLeaderboard) {
+    return (
+      <DailyLeaderboardScreen
+        leaderboard={dailyLeaderboard}
+        lastScore={score ?? undefined}
+        mode={mode}
+        onPlayAgain={dailyPlayAgain}
+      />
+    );
+  }
+
   if (mySubmission) {
     return (
       <ChallengeMyTeamScreen

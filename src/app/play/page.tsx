@@ -16,11 +16,15 @@ import {
   getChallengeComparison,
   getChallengeLeaderboard,
   getChallengeMySubmission,
+  getDailyLeaderboard,
+  getDailyPuzzleToday,
   scoreTeam,
   siteUrl,
   startChallengeDraft,
+  startDailyPuzzle,
   startGame,
   submitChallenge,
+  submitDailyPuzzle,
 } from "@/lib/api";
 import { firstEmptySlot, isLineupComplete } from "@/lib/draft";
 import {
@@ -30,6 +34,7 @@ import {
   getGameMode,
   getGameSettings,
   isChallengeDraftResumable,
+  isDailyDraftResumable,
   isInProgressDraftResumable,
   isPageReload,
   loadDraftState,
@@ -44,6 +49,7 @@ import type {
   ChallengeDetail,
   ChallengeLeaderboard,
   ChallengeMySubmission,
+  DailyLeaderboard,
   GameMode,
   GamePhase,
   GameSettings,
@@ -63,7 +69,9 @@ function PlayPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const challengeId = searchParams.get("challenge");
+  const isDaily = searchParams.get("daily") === "1";
   const viewResult = searchParams.get("view") === "result";
+  const viewDailyLeaderboard = searchParams.get("view") === "leaderboard";
   const freshStart = searchParams.get("fresh") === "1";
   const { user } = useAuth();
 
@@ -92,8 +100,12 @@ function PlayPageContent() {
   const [challengeError, setChallengeError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showChallengeLogin, setShowChallengeLogin] = useState(false);
-  const booted = useRef(false);
+  const [showDailyLogin, setShowDailyLogin] = useState(false);
+  const [dailyPuzzleId, setDailyPuzzleId] = useState<string | null>(null);
+  const [dailyLeaderboard, setDailyLeaderboard] = useState<DailyLeaderboard | null>(null);
+  const lastBootKey = useRef<string | null>(null);
   const lineupRef = useRef(lineup);
+  const pendingDailySubmit = useRef(false);
   lineupRef.current = lineup;
   const showStats = mode === "easy";
 
@@ -115,9 +127,23 @@ function PlayPageContent() {
     setPhase(saved.phase);
     setScore(saved.score ?? null);
     setIsNewBest(saved.isNewBest ?? false);
+    setDailyPuzzleId(saved.dailyPuzzleId ?? null);
+    setDailyLeaderboard(null);
     setBootFailed(false);
     setBest(getBestScore(saved.mode, saved.settings));
     setLoading(false);
+  }, []);
+
+  const showDailyLeaderboard = useCallback(async (puzzleId: string) => {
+    clearDraftState();
+    const board = await getDailyLeaderboard();
+    setDailyPuzzleId(puzzleId);
+    setDailyLeaderboard(board);
+    setGame(null);
+    setPicks([]);
+    setLineup({});
+    setScore(null);
+    setPhase("result");
   }, []);
 
   const initGame = useCallback(
@@ -160,10 +186,82 @@ function PlayPageContent() {
   );
 
   useEffect(() => {
-    if (booted.current && !freshStart) return;
-    booted.current = true;
+    const bootKey = [
+      challengeId ?? "",
+      isDaily ? "1" : "0",
+      viewDailyLeaderboard ? "lb" : "",
+      viewResult ? "result" : "",
+      freshStart ? "fresh" : "",
+    ].join(":");
+
+    if (lastBootKey.current === bootKey) return;
+    lastBootKey.current = bootKey;
 
     const boot = async () => {
+      if (isDaily) {
+        setLoading(true);
+        setBootFailed(false);
+        try {
+          const today = await getDailyPuzzleToday();
+          if (!today.is_active) {
+            router.replace("/");
+            return;
+          }
+          setDailyPuzzleId(today.puzzle_id);
+          const dailySettings: GameSettings = {
+            format: today.format,
+            wicketMode: today.wicket_mode,
+          };
+          setSettings(dailySettings);
+          setMode(today.mode);
+
+          if (freshStart) {
+            clearDraftState();
+            const data = await startDailyPuzzle();
+            setGame(data);
+            setDailyPuzzleId(data.puzzle_id);
+            setDailyLeaderboard(null);
+            setPhase("draft");
+            setCurrentRound(1);
+            setPicks([]);
+            setLineup({});
+            setScore(null);
+            return;
+          }
+
+          const alreadyPlayed = (today.viewer?.attempt_count ?? 0) >= 1;
+          if (viewDailyLeaderboard || alreadyPlayed) {
+            await showDailyLeaderboard(today.puzzle_id);
+            if (!viewDailyLeaderboard) {
+              router.replace("/play?daily=1&view=leaderboard", { scroll: false });
+            }
+            return;
+          }
+
+          const saved = loadDraftState();
+          if (
+            saved &&
+            isPageReload() &&
+            isDailyDraftResumable(saved, today.puzzle_id)
+          ) {
+            restoreDraft(saved);
+            setDailyPuzzleId(saved.dailyPuzzleId ?? today.puzzle_id);
+            return;
+          }
+          if (saved) clearDraftState();
+
+          const data = await startDailyPuzzle();
+          setGame(data);
+          setDailyPuzzleId(data.puzzle_id);
+          setPhase("draft");
+        } catch {
+          setBootFailed(true);
+        } finally {
+          setLoading(false);
+        }
+        return;
+      }
+
       if (challengeId) {
         setLoading(true);
         try {
@@ -247,12 +345,23 @@ function PlayPageContent() {
     };
 
     void boot();
-  }, [challengeId, viewResult, freshStart, initGame, restoreDraft, router]);
+  }, [
+    challengeId,
+    isDaily,
+    viewResult,
+    viewDailyLeaderboard,
+    freshStart,
+    initGame,
+    restoreDraft,
+    router,
+    showDailyLeaderboard,
+  ]);
 
   useEffect(() => {
-    if (loading || !game || phase !== "draft") return;
+    if (loading || !game || phase !== "draft" || viewDailyLeaderboard) return;
     saveDraftState({
       challengeId: challengeId ?? undefined,
+      dailyPuzzleId: dailyPuzzleId ?? undefined,
       mode,
       settings,
       game,
@@ -267,6 +376,7 @@ function PlayPageContent() {
     loading,
     game,
     challengeId,
+    dailyPuzzleId,
     mode,
     settings,
     picks,
@@ -275,10 +385,11 @@ function PlayPageContent() {
     phase,
     score,
     isNewBest,
+    viewDailyLeaderboard,
   ]);
 
   useEffect(() => {
-    if (challengeId) return;
+    if (challengeId || isDaily) return;
     const savedMode = getGameMode();
     const savedSettings = getGameSettings();
     setMode(savedMode);
@@ -345,9 +456,48 @@ function PlayPageContent() {
     setCurrentRound(nextLen + 1);
   };
 
+  const runDailySubmit = useCallback(async () => {
+    const activeLineup = lineupRef.current;
+    if (!game?.game_id || !dailyPuzzleId || !isLineupComplete(activeLineup)) return;
+
+    setSubmitError(null);
+    setSubmitting(true);
+    try {
+      const payload: Record<string, string> = {};
+      for (let s = 1; s <= 11; s++) payload[String(s)] = activeLineup[s];
+
+      const result = await submitDailyPuzzle({
+        puzzle_id: dailyPuzzleId,
+        game_id: game.game_id,
+        lineup: payload,
+      });
+      setScore(result.your_score);
+      setDailyLeaderboard(result.leaderboard);
+      setIsNewBest(result.is_new_best);
+      clearDraftState();
+      setPhase("result");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Scoring failed";
+      setSubmitError(message);
+    } finally {
+      setSubmitting(false);
+      pendingDailySubmit.current = false;
+    }
+  }, [game, dailyPuzzleId]);
+
   const handleSubmit = useCallback(async () => {
     const activeLineup = lineupRef.current;
     if (!game?.game_id || !isLineupComplete(activeLineup)) return;
+
+    if (isDaily) {
+      if (!user) {
+        pendingDailySubmit.current = true;
+        setShowDailyLogin(true);
+        return;
+      }
+      await runDailySubmit();
+      return;
+    }
 
     setSubmitError(null);
     setSubmitting(true);
@@ -423,6 +573,9 @@ function PlayPageContent() {
     settings,
     mode,
     router,
+    isDaily,
+    user,
+    runDailySubmit,
   ]);
 
   const doCreateChallenge = useCallback(async () => {
@@ -472,6 +625,10 @@ function PlayPageContent() {
     void doCreateChallenge();
   };
 
+  const handleDailyPlayAgain = () => {
+    router.push("/play?daily=1&fresh=1");
+  };
+
   const currentPool = game?.pools[currentRound - 1] ?? [];
 
   return (
@@ -492,17 +649,17 @@ function PlayPageContent() {
               onClick={() => setShowHowTo(true)}
               className={[
                 "btn-ghost rounded-lg px-2 py-1 text-xs sm:px-2.5",
-                challengeId ? "hidden sm:inline-flex" : "",
+                challengeId || isDaily ? "hidden sm:inline-flex" : "",
               ].join(" ")}
             >
               Rules
             </button>
-            {user && !challengeId && (
+            {user && !challengeId && !isDaily && (
               <Link href="/profile" className="btn-ghost text-xs">
                 Profile
               </Link>
             )}
-            {best && phase !== "result" && !challengeId && (
+            {best && phase !== "result" && !challengeId && !isDaily && (
               <span className="hidden text-xs text-cream-muted sm:inline">
                 Best{" "}
                 <span className="font-[family-name:var(--font-mono)] text-gold">
@@ -517,9 +674,17 @@ function PlayPageContent() {
       <div
         className={[
           "mx-auto py-4 sm:py-6",
-          challengeId ? "max-w-2xl px-3 sm:px-4" : "max-w-7xl px-3 sm:px-4",
+          challengeId || isDaily ? "max-w-2xl px-3 sm:px-4" : "max-w-7xl px-3 sm:px-4",
         ].join(" ")}
       >
+        {isDaily && phase === "draft" && game && (
+          <div className="mb-4 rounded-xl border border-gold/25 bg-gold/5 px-4 py-3 text-center text-sm text-cream-muted">
+            <span className="font-medium text-cream">Daily challenge</span>
+            {" · "}
+            {game.format_label} · {game.wicket_mode_label} · {mode}
+          </div>
+        )}
+
         {challengeMeta && phase === "draft" && challengeMeta.creator_score != null && (
           <div className="mb-4 rounded-xl border border-border bg-accent-muted px-4 py-3 text-center text-sm text-cream-muted">
             Beat{" "}
@@ -540,7 +705,7 @@ function PlayPageContent() {
           <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 text-center">
             <p className="text-sm text-cream-muted">Ready when you are.</p>
             <div className="flex flex-col gap-3 sm:flex-row">
-              {!challengeId && (
+              {!challengeId && !isDaily && (
                 <button
                   type="button"
                   onClick={() => initGame()}
@@ -556,7 +721,7 @@ function PlayPageContent() {
           </div>
         )}
 
-        {!loading && game && phase === "draft" && (
+        {!loading && game && phase === "draft" && !viewDailyLeaderboard && (
           <DraftBoard
             round={currentRound}
             totalRounds={game.rounds}
@@ -587,20 +752,20 @@ function PlayPageContent() {
           </div>
         )}
 
-        {!loading && !comparisonLoading && phase === "result" && (score || comparison || leaderboard || mySubmission) && (
+        {!loading && !comparisonLoading && phase === "result" && (score || comparison || leaderboard || mySubmission || dailyLeaderboard) && (
           <ResultScreen
             score={score}
             mode={mode}
             isNewBest={isNewBest}
             onPlayAgain={
-              challengeId
+              challengeId || isDaily
                 ? undefined
                 : () => initGame()
             }
             challengeId={challengeId}
             challengeShareUrl={challengeShareUrl}
             onChallengeFriend={
-              !challengeId && score ? handleChallengeFriend : undefined
+              !challengeId && !isDaily && score ? handleChallengeFriend : undefined
             }
             challengeLoading={challengeLoading}
             challengeError={challengeError}
@@ -610,9 +775,25 @@ function PlayPageContent() {
             viewerUserId={user?.id}
             onSelectPlayer={handleSelectPlayer}
             onBackToLeaderboard={handleBackToLeaderboard}
+            dailyLeaderboard={dailyLeaderboard}
+            dailyPlayAgain={isDaily ? handleDailyPlayAgain : undefined}
           />
         )}
       </div>
+
+      <GoogleSignInModal
+        open={showDailyLogin}
+        onClose={() => {
+          setShowDailyLogin(false);
+          pendingDailySubmit.current = false;
+        }}
+        onSuccess={() => {
+          setShowDailyLogin(false);
+          if (pendingDailySubmit.current) {
+            void runDailySubmit();
+          }
+        }}
+      />
 
       <GoogleSignInModal
         open={showChallengeLogin}
