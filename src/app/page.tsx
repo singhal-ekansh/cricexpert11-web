@@ -18,11 +18,12 @@ import {
   setGameMode,
   setGameSettings,
 } from "@/lib/storage";
+import { getCurrentUser } from "@/lib/auth";
 import type { GameMode, GameOption, GameSettings } from "@/lib/types";
 
 export default function HomePage() {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const [mode, setMode] = useState<GameMode>("easy");
   const [settings, setSettings] = useState<GameSettings>(DEFAULT_GAME_SETTINGS);
   const [formats, setFormats] = useState<GameOption[]>([]);
@@ -33,7 +34,8 @@ export default function HomePage() {
   const [signInForChallenges, setSignInForChallenges] = useState(false);
 
   const handleMyChallenges = () => {
-    if (user) {
+    const currentUser = user ?? getCurrentUser();
+    if (currentUser) {
       router.push("/profile");
       return;
     }
@@ -106,15 +108,13 @@ export default function HomePage() {
               >
                 Play
               </button>
-              {!authLoading && (
-                <button
-                  type="button"
-                  onClick={handleMyChallenges}
-                  className="btn-outline w-full rounded-xl px-6 py-3 text-sm"
-                >
-                  My challenges
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleMyChallenges}
+                className="btn-outline w-full rounded-xl px-6 py-3 text-sm"
+              >
+                My challenges
+              </button>
               <button
                 type="button"
                 onClick={() => setShowHowTo(true)}
