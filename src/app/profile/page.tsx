@@ -21,7 +21,7 @@ const TABS: { id: ProfileTab; label: string }[] = [
   { id: "completed", label: "Completed" },
 ];
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
 
 const EMPTY_PAGE: ChallengeListPage = {
   items: [],
@@ -265,14 +265,14 @@ export default function ProfilePage() {
                   ))}
                 </ul>
                 {activePage.has_more && (
-                  <div className="mt-5 text-center">
+                  <div className="mt-4 text-center">
                     <button
                       type="button"
                       onClick={() => loadMore()}
                       disabled={loadingMore}
-                      className="btn-outline rounded-lg px-6 py-2.5 text-sm disabled:opacity-50"
+                      className="btn-ghost text-sm text-cream-muted hover:text-cream disabled:opacity-50"
                     >
-                      {loadingMore ? "Loading…" : "Load more"}
+                      {loadingMore ? "Loading…" : "Show more"}
                     </button>
                   </div>
                 )}

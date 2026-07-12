@@ -103,12 +103,16 @@ function PlayPageContent() {
   const [showDailyLogin, setShowDailyLogin] = useState(false);
   const [dailyPuzzleId, setDailyPuzzleId] = useState<string | null>(null);
   const [dailyLeaderboard, setDailyLeaderboard] = useState<DailyLeaderboard | null>(null);
-  const [dailyLoadingLeaderboard, setDailyLoadingLeaderboard] = useState(false);
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
   const lastBootKey = useRef<string | null>(null);
   const lineupRef = useRef(lineup);
   const pendingDailySubmit = useRef(false);
   lineupRef.current = lineup;
   const showStats = mode === "easy";
+
+  const showLeaderboardLoading =
+    (isDaily && (viewDailyLeaderboard || loadingLeaderboard)) ||
+    (Boolean(challengeId) && (viewResult || loadingLeaderboard));
 
   const playerMap = useMemo(
     () => Object.fromEntries(picks.map((p) => [p.player_id, p])),
@@ -201,7 +205,7 @@ function PlayPageContent() {
     const boot = async () => {
       if (isDaily) {
         const wantsLeaderboard = viewDailyLeaderboard;
-        setDailyLoadingLeaderboard(wantsLeaderboard);
+        setLoadingLeaderboard(wantsLeaderboard);
         setLoading(true);
         setBootFailed(false);
         if (wantsLeaderboard) {
@@ -226,7 +230,7 @@ function PlayPageContent() {
           setMode(today.mode);
 
           if (freshStart) {
-            setDailyLoadingLeaderboard(false);
+            setLoadingLeaderboard(false);
             clearDraftState();
             const data = await startDailyPuzzle();
             setGame(data);
@@ -242,7 +246,7 @@ function PlayPageContent() {
 
           const alreadyPlayed = (today.viewer?.attempt_count ?? 0) >= 1;
           if (wantsLeaderboard || alreadyPlayed) {
-            setDailyLoadingLeaderboard(true);
+            setLoadingLeaderboard(true);
             await showDailyLeaderboard(today.puzzle_id);
             if (!wantsLeaderboard) {
               window.history.replaceState(null, "", "/play?daily=1&view=leaderboard");
@@ -250,7 +254,7 @@ function PlayPageContent() {
             return;
           }
 
-          setDailyLoadingLeaderboard(false);
+          setLoadingLeaderboard(false);
           const saved = loadDraftState();
           if (
             saved &&
@@ -276,19 +280,41 @@ function PlayPageContent() {
       }
 
       if (challengeId) {
+        const wantsResult = viewResult;
+        setLoadingLeaderboard(wantsResult);
         setLoading(true);
+        setBootFailed(false);
+        if (wantsResult) {
+          setGame(null);
+          setPicks([]);
+          setLineup({});
+          setScore(null);
+          setPhase("result");
+        }
         try {
           const meta = await getChallenge(challengeId);
           setChallengeMeta(meta);
 
-          if (viewResult || meta.viewer_has_submitted) {
+          if (wantsResult || meta.viewer_has_submitted) {
+            setLoadingLeaderboard(true);
             clearDraftState();
+            setGame(null);
+            setPicks([]);
+            setLineup({});
+            setScore(null);
             try {
               const board = await loadChallengeLeaderboard(challengeId);
               setLeaderboard(board);
               setComparison(null);
               setMySubmission(null);
               setPhase("result");
+              if (!wantsResult) {
+                window.history.replaceState(
+                  null,
+                  "",
+                  `/play?challenge=${challengeId}&view=result`,
+                );
+              }
             } catch {
               router.replace("/");
             } finally {
@@ -297,6 +323,7 @@ function PlayPageContent() {
             return;
           }
 
+          setLoadingLeaderboard(false);
           const saved = loadDraftState();
           if (saved && isChallengeDraftResumable(saved, challengeId, meta)) {
             restoreDraft(saved);
@@ -711,7 +738,7 @@ function PlayPageContent() {
           <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-gold border-t-transparent" />
             <p className="text-sm text-cream-muted">
-              {isDaily && dailyLoadingLeaderboard
+              {showLeaderboardLoading
                 ? "Loading leaderboard…"
                 : "Generating draft pools…"}
             </p>
