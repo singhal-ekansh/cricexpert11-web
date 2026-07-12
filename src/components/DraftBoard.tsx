@@ -9,7 +9,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type MouseEvent, type PointerEvent } from "react";
 import type { GameMode, PlayerCard } from "@/lib/types";
 import { reorderLineup, sortPoolByRole } from "@/lib/draft";
 import { countOverseasPlayers, IPL_OVERSEAS_LIMIT } from "@/lib/ipl";
@@ -31,6 +31,7 @@ interface Props {
   onLineupChange: (lineup: Record<number, string>) => void;
   onSubmit: () => void;
   submitting: boolean;
+  submitError?: string | null;
   draftComplete: boolean;
   mode: GameMode;
   showStats: boolean;
@@ -38,7 +39,6 @@ interface Props {
   formatLabel?: string;
   wicketLabel?: string;
   formatId?: string;
-  fixedPoolOrder?: boolean;
 }
 
 export function DraftBoard({
@@ -53,6 +53,7 @@ export function DraftBoard({
   onLineupChange,
   onSubmit,
   submitting,
+  submitError,
   draftComplete,
   mode,
   showStats,
@@ -60,7 +61,6 @@ export function DraftBoard({
   formatLabel,
   wicketLabel,
   formatId,
-  fixedPoolOrder = false,
 }: Props) {
   const [activePlayer, setActivePlayer] = useState<PlayerCard | null>(null);
   const filled = Array.from({ length: 11 }, (_, i) => lineup[i + 1]).filter(Boolean)
@@ -73,10 +73,7 @@ export function DraftBoard({
       ),
     [lineup, playerMap],
   );
-  const sortedPool = useMemo(
-    () => (fixedPoolOrder ? pool : sortPoolByRole(pool)),
-    [pool, fixedPoolOrder],
-  );
+  const sortedPool = useMemo(() => sortPoolByRole(pool), [pool]);
   const overBudget = totalCredits > creditBudget;
   const overseasCount = useMemo(
     () => countOverseasPlayers(lineup, playerMap, formatId),
@@ -117,7 +114,29 @@ export function DraftBoard({
     onLineupChange(reorderLineup(lineup, fromSlot, toSlot));
   };
 
+  const handleSubmitClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onSubmit();
+  };
+
+  const handleSubmitPointerDown = (event: PointerEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+  };
+
+  const renderSubmitButton = (className: string) => (
+    <button
+      type="button"
+      onClick={handleSubmitClick}
+      onPointerDown={handleSubmitPointerDown}
+      disabled={submitting || filled < 11}
+      className={className}
+    >
+      {submitting ? "Scoring…" : "Submit & score"}
+    </button>
+  );
+
   return (
+    <>
     <DndContext
       sensors={sensors}
       onDragStart={(e) => {
@@ -262,32 +281,20 @@ export function DraftBoard({
             </div>
 
             {draftComplete && (
-              <button
-                type="button"
-                onClick={onSubmit}
-                disabled={submitting || filled < 11}
-                className="btn-gold mt-4 hidden w-full rounded-xl px-6 py-3.5 text-sm lg:inline-flex lg:justify-center"
-              >
-                {submitting ? "Scoring…" : "Submit & score"}
-              </button>
+              <div className="mt-4 hidden space-y-2 lg:block">
+                {submitError && (
+                  <p className="rounded-lg border border-crimson/30 bg-crimson/10 px-3 py-2 text-xs text-crimson">
+                    {submitError}
+                  </p>
+                )}
+                {renderSubmitButton(
+                  "btn-gold touch-manipulation w-full rounded-xl px-6 py-3.5 text-sm font-semibold lg:inline-flex lg:justify-center",
+                )}
+              </div>
             )}
           </section>
         </div>
       </div>
-
-      {/* Mobile sticky submit */}
-      {draftComplete && (
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-bg-deep/95 p-3 backdrop-blur-md lg:hidden">
-          <button
-            type="button"
-            onClick={onSubmit}
-            disabled={submitting || filled < 11}
-            className="btn-gold w-full rounded-xl px-6 py-3.5 text-sm font-semibold"
-          >
-            {submitting ? "Scoring…" : "Submit & score"}
-          </button>
-        </div>
-      )}
 
       <DragOverlay>
         {activePlayer ? (
@@ -302,5 +309,19 @@ export function DraftBoard({
         ) : null}
       </DragOverlay>
     </DndContext>
+
+    {draftComplete && (
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-bg-deep/95 p-3 backdrop-blur-md lg:hidden">
+        {submitError && (
+          <p className="mb-2 rounded-lg border border-crimson/30 bg-crimson/10 px-3 py-2 text-xs text-crimson">
+            {submitError}
+          </p>
+        )}
+        {renderSubmitButton(
+          "btn-gold touch-manipulation w-full rounded-xl px-6 py-3.5 text-sm font-semibold",
+        )}
+      </div>
+    )}
+    </>
   );
 }

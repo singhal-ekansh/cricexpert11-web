@@ -150,6 +150,7 @@ export interface ChallengeSummary {
   your_score?: number | null;
   your_rank?: number | null;
   player_count?: number;
+  participant_count?: number;
   creator_score?: number | null;
   creator?: ChallengeUser;
 }

@@ -145,6 +145,12 @@ export function startChallengeDraft(
   );
 }
 
+export function deleteChallenge(challengeId: string): Promise<{ status: string }> {
+  return apiFetch<{ status: string }>(`/api/v1/challenges/${challengeId}`, {
+    method: "DELETE",
+  });
+}
+
 export function getChallenge(challengeId: string): Promise<ChallengeDetail> {
   return apiFetch<ChallengeDetail>(`/api/v1/challenges/${challengeId}`);
 }

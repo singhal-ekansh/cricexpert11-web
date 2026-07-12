@@ -50,9 +50,13 @@ function StatusPill({ tab }: { tab: Tab }) {
 export function ProfileChallengeCard({
   item,
   tab,
+  onDelete,
+  deleting = false,
 }: {
   item: ChallengeSummary;
   tab: Tab;
+  onDelete?: (item: ChallengeSummary) => void;
+  deleting?: boolean;
 }) {
   const isCreator = !item.creator;
   const title = isCreator
@@ -70,6 +74,11 @@ export function ProfileChallengeCard({
       : null;
   const shareable = isChallengeShareable(item.expires_at);
   const shareScore = yourScore ?? item.creator_score;
+  const canDelete =
+    isCreator &&
+    onDelete &&
+    (item.participant_count ?? 1) <= 1 &&
+    (item.player_count ?? 1) <= 1;
 
   return (
     <div className="group overflow-hidden rounded-xl border border-border bg-bg-card transition-colors hover:border-border-strong hover:bg-bg-card-hover">
@@ -117,13 +126,42 @@ export function ProfileChallengeCard({
         </div>
       </Link>
 
-      {shareable && (
-        <div className="flex justify-end border-t border-border/50 px-4 py-2.5 sm:px-5">
-          <ChallengeShareButton
-            url={challengePageUrl(item.id)}
-            score={shareScore}
-            compact
-          />
+      {(shareable || canDelete) && (
+        <div className="flex items-center justify-between border-t border-border/50 px-4 py-2.5 sm:px-5">
+          {canDelete ? (
+            <button
+              type="button"
+              onClick={() => onDelete(item)}
+              disabled={deleting}
+              aria-label="Delete challenge"
+              className="rounded-lg p-1.5 text-cream-muted transition-colors hover:bg-crimson/10 hover:text-crimson disabled:opacity-50"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                className="h-4 w-4"
+                aria-hidden
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 3h6m-8 4h10m-9 4v8m4-8v8m4-8v8M6 7h12l-.8 14.4a1 1 0 0 1-1 .9H7.8a1 1 0 0 1-1-.9L6 7Z"
+                />
+              </svg>
+            </button>
+          ) : (
+            <span />
+          )}
+          {shareable && (
+            <ChallengeShareButton
+              url={challengePageUrl(item.id)}
+              score={shareScore}
+              compact
+            />
+          )}
         </div>
       )}
     </div>

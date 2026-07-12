@@ -12,7 +12,7 @@ import {
 } from "@/components/ProfileChallengeCard";
 import { SiteFooter } from "@/components/SiteFooter";
 import { UserAvatar } from "@/components/UserAvatar";
-import { fetchMyChallenges } from "@/lib/api";
+import { deleteChallenge, fetchMyChallenges } from "@/lib/api";
 import type { ChallengeListPage, ChallengeSummary } from "@/lib/types";
 import { userDisplayName } from "@/lib/user";
 
@@ -54,6 +54,7 @@ export default function ProfilePage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [tab, setTab] = useState<ProfileTab>("live");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const loadInitial = useCallback(async () => {
     if (!user) return;
@@ -118,6 +119,41 @@ export default function ProfilePage() {
     }
     void loadInitial();
   }, [user, authLoading, loadInitial]);
+
+  const handleDeleteChallenge = useCallback(
+    async (item: ChallengeSummary) => {
+      if ((item.participant_count ?? 1) > 1 || (item.player_count ?? 1) > 1) {
+        return;
+      }
+
+      const confirmed = window.confirm(
+        "Delete this challenge? Friends will no longer be able to play it. This cannot be undone.",
+      );
+      if (!confirmed) return;
+
+      setDeletingId(item.id);
+      try {
+        await deleteChallenge(item.id);
+        setLivePage((prev) => ({
+          ...prev,
+          items: prev.items.filter((entry) => entry.id !== item.id),
+          total: Math.max(0, prev.total - 1),
+        }));
+        setCompletedPage((prev) => ({
+          ...prev,
+          items: prev.items.filter((entry) => entry.id !== item.id),
+          total: Math.max(0, prev.total - 1),
+        }));
+      } catch {
+        window.alert(
+          "Could not delete this challenge. It may have already been joined by someone else.",
+        );
+      } finally {
+        setDeletingId(null);
+      }
+    },
+    [],
+  );
 
   const activePage = tab === "live" ? livePage : completedPage;
   const activeItems: ChallengeSummary[] = activePage.items;
@@ -219,7 +255,12 @@ export default function ProfilePage() {
                 <ul className="space-y-3">
                   {activeItems.map((item) => (
                     <li key={item.id}>
-                      <ProfileChallengeCard item={item} tab={tab} />
+                      <ProfileChallengeCard
+                        item={item}
+                        tab={tab}
+                        onDelete={handleDeleteChallenge}
+                        deleting={deletingId === item.id}
+                      />
                     </li>
                   ))}
                 </ul>

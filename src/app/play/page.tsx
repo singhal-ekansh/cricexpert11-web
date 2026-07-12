@@ -90,8 +90,11 @@ function PlayPageContent() {
   const [challengeShareUrl, setChallengeShareUrl] = useState<string | null>(null);
   const [challengeLoading, setChallengeLoading] = useState(false);
   const [challengeError, setChallengeError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [showChallengeLogin, setShowChallengeLogin] = useState(false);
   const booted = useRef(false);
+  const lineupRef = useRef(lineup);
+  lineupRef.current = lineup;
   const showStats = mode === "easy";
 
   const playerMap = useMemo(
@@ -319,6 +322,7 @@ function PlayPageContent() {
     if (draftComplete || picks.length >= (game?.rounds ?? 11)) return;
     const nextSlot = firstEmptySlot(lineup);
     if (nextSlot === null) return;
+    setSubmitError(null);
     setPicks((prev) => [...prev, player]);
     setLineup((prev) => ({ ...prev, [nextSlot]: player.player_id }));
     if (currentRound < (game?.rounds ?? 11)) {
@@ -341,12 +345,15 @@ function PlayPageContent() {
     setCurrentRound(nextLen + 1);
   };
 
-  const handleSubmit = async () => {
-    if (!game?.game_id || !isLineupComplete(lineup)) return;
+  const handleSubmit = useCallback(async () => {
+    const activeLineup = lineupRef.current;
+    if (!game?.game_id || !isLineupComplete(activeLineup)) return;
+
+    setSubmitError(null);
     setSubmitting(true);
     try {
       const payload: Record<string, string> = {};
-      for (let s = 1; s <= 11; s++) payload[String(s)] = lineup[s];
+      for (let s = 1; s <= 11; s++) payload[String(s)] = activeLineup[s];
 
       if (challengeId && challengeMeta && !challengeMeta.viewer_is_creator) {
         const result = await submitChallenge(challengeId, {
@@ -365,6 +372,12 @@ function PlayPageContent() {
       const result = await scoreTeam(game.game_id, payload, settings, mode);
       setScore(result);
       if (!challengeId) {
+        setLeaderboard(null);
+        setComparison(null);
+        setMySubmission(null);
+        setCreatedChallengeId(null);
+        setChallengeShareUrl(null);
+        setChallengeError(null);
         const isBest = saveBestScore({
           team_score: result.team_score,
           raw_score: result.raw_score,
@@ -397,11 +410,20 @@ function PlayPageContent() {
         } catch {
           router.replace(challengeId ? `/c/${challengeId}` : "/");
         }
+      } else {
+        setSubmitError(message);
       }
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [
+    game,
+    challengeId,
+    challengeMeta,
+    settings,
+    mode,
+    router,
+  ]);
 
   const doCreateChallenge = useCallback(async () => {
     if (!game || !score) return;
@@ -547,6 +569,7 @@ function PlayPageContent() {
             onLineupChange={setLineup}
             onSubmit={handleSubmit}
             submitting={submitting}
+            submitError={submitError}
             draftComplete={draftComplete}
             mode={mode}
             showStats={showStats}
@@ -554,7 +577,6 @@ function PlayPageContent() {
             formatLabel={game.format_label}
             wicketLabel={game.wicket_mode_label}
             formatId={game.format}
-            fixedPoolOrder={!!challengeId}
           />
         )}
 
@@ -575,7 +597,7 @@ function PlayPageContent() {
                 ? undefined
                 : () => initGame()
             }
-            challengeId={createdChallengeId ?? challengeId}
+            challengeId={challengeId}
             challengeShareUrl={challengeShareUrl}
             onChallengeFriend={
               !challengeId && score ? handleChallengeFriend : undefined
