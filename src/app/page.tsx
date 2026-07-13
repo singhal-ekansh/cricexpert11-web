@@ -101,14 +101,15 @@ export default function HomePage() {
               {BRAND_HERO_COPY}
             </p>
 
-            <div className="mt-8 space-y-2.5">
+            <div className="mt-8">
               <DailyChallengeCard />
+              <div className="mt-6 space-y-2.5">
               <button
                 type="button"
                 onClick={() => setShowSetup(true)}
                 className="btn-gold w-full rounded-xl px-6 py-3.5 text-sm font-semibold"
               >
-                Play
+                Draft & Challenge
               </button>
               <button
                 type="button"
@@ -125,6 +126,7 @@ export default function HomePage() {
                 How to play
               </button>
               <AddToHomeScreen />
+              </div>
             </div>
 
             <p className="mt-6 text-center text-xs text-cream-muted/70">

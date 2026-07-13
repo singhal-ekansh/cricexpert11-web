@@ -42,6 +42,7 @@ import {
   saveDraftState,
   type SavedDraftState,
 } from "@/lib/storage";
+import { getCachedDailyPuzzleToday, setCachedDailyPuzzleToday } from "@/lib/daily";
 import { scrollToTop } from "@/lib/scroll";
 import type {
   BestScoreRecord,
@@ -139,10 +140,19 @@ function PlayPageContent() {
     setLoading(false);
   }, []);
 
-  const showDailyLeaderboard = useCallback(async (puzzleId: string) => {
+  const showDailyLeaderboard = useCallback(async () => {
     clearDraftState();
+    const cached = getCachedDailyPuzzleToday();
+    if (cached) {
+      setDailyPuzzleId(cached.puzzle_id);
+      setSettings({
+        format: cached.format,
+        wicketMode: cached.wicket_mode,
+      });
+      setMode(cached.mode);
+    }
     const board = await getDailyLeaderboard();
-    setDailyPuzzleId(puzzleId);
+    setDailyPuzzleId(board.puzzle_id);
     setDailyLeaderboard(board);
     setGame(null);
     setPicks([]);
@@ -205,9 +215,18 @@ function PlayPageContent() {
     const boot = async () => {
       if (isDaily) {
         const wantsLeaderboard = viewDailyLeaderboard;
+        const cachedToday = getCachedDailyPuzzleToday();
         setLoadingLeaderboard(wantsLeaderboard);
         setLoading(true);
         setBootFailed(false);
+        if (cachedToday) {
+          setDailyPuzzleId(cachedToday.puzzle_id);
+          setSettings({
+            format: cachedToday.format,
+            wicketMode: cachedToday.wicket_mode,
+          });
+          setMode(cachedToday.mode);
+        }
         if (wantsLeaderboard) {
           setGame(null);
           setPicks([]);
@@ -216,20 +235,18 @@ function PlayPageContent() {
           setPhase("result");
         }
         try {
-          const today = await getDailyPuzzleToday();
-          if (!today.is_active) {
-            router.replace("/");
-            return;
-          }
-          setDailyPuzzleId(today.puzzle_id);
-          const dailySettings: GameSettings = {
-            format: today.format,
-            wicketMode: today.wicket_mode,
-          };
-          setSettings(dailySettings);
-          setMode(today.mode);
-
           if (freshStart) {
+            const today = await getDailyPuzzleToday();
+            if (!today.is_active) {
+              router.replace("/");
+              return;
+            }
+            setDailyPuzzleId(today.puzzle_id);
+            setSettings({
+              format: today.format,
+              wicketMode: today.wicket_mode,
+            });
+            setMode(today.mode);
             setLoadingLeaderboard(false);
             clearDraftState();
             const data = await startDailyPuzzle();
@@ -244,13 +261,37 @@ function PlayPageContent() {
             return;
           }
 
-          const alreadyPlayed = (today.viewer?.attempt_count ?? 0) >= 1;
-          if (wantsLeaderboard || alreadyPlayed) {
+          if (wantsLeaderboard) {
             setLoadingLeaderboard(true);
-            await showDailyLeaderboard(today.puzzle_id);
-            if (!wantsLeaderboard) {
-              window.history.replaceState(null, "", "/play?daily=1&view=leaderboard");
-            }
+            await showDailyLeaderboard();
+            return;
+          }
+
+          const cachedPlayed = (cachedToday?.viewer?.attempt_count ?? 0) >= 1;
+          if (cachedPlayed) {
+            setLoadingLeaderboard(true);
+            await showDailyLeaderboard();
+            window.history.replaceState(null, "", "/play?daily=1&view=leaderboard");
+            return;
+          }
+
+          const today = await getDailyPuzzleToday();
+          if (!today.is_active) {
+            router.replace("/");
+            return;
+          }
+          setDailyPuzzleId(today.puzzle_id);
+          setSettings({
+            format: today.format,
+            wicketMode: today.wicket_mode,
+          });
+          setMode(today.mode);
+
+          const alreadyPlayed = (today.viewer?.attempt_count ?? 0) >= 1;
+          if (alreadyPlayed) {
+            setLoadingLeaderboard(true);
+            await showDailyLeaderboard();
+            window.history.replaceState(null, "", "/play?daily=1&view=leaderboard");
             return;
           }
 
@@ -516,6 +557,9 @@ function PlayPageContent() {
       setIsNewBest(result.is_new_best);
       clearDraftState();
       setPhase("result");
+      void getDailyPuzzleToday()
+        .then(setCachedDailyPuzzleToday)
+        .catch(() => {});
     } catch (err) {
       const message = err instanceof Error ? err.message : "Scoring failed";
       setSubmitError(message);
@@ -863,8 +907,9 @@ export default function PlayPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center text-cream-muted">
-          Loading…
+        <div className="flex min-h-screen flex-col items-center justify-center gap-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-gold border-t-transparent" />
+          <p className="text-sm text-cream-muted">Loading…</p>
         </div>
       }
     >

@@ -12,12 +12,16 @@ import {
 import type { DailyPuzzleToday } from "@/lib/types";
 import { ordinalRank } from "@/lib/rank";
 
+function dailyPlayHref(puzzle: DailyPuzzleToday): string {
+  const played = (puzzle.viewer?.attempt_count ?? 0) >= 1;
+  return played ? "/play?daily=1&view=leaderboard" : "/play?daily=1";
+}
+
 export function DailyChallengeCard() {
   const router = useRouter();
   const [puzzle, setPuzzle] = useState<DailyPuzzleToday | null>(null);
   const [countdown, setCountdown] = useState("");
   const [loading, setLoading] = useState(true);
-  const [navigating, setNavigating] = useState(false);
 
   useLayoutEffect(() => {
     const cached = getCachedDailyPuzzleToday();
@@ -26,6 +30,11 @@ export function DailyChallengeCard() {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    router.prefetch("/play?daily=1");
+    router.prefetch("/play?daily=1&view=leaderboard");
+  }, [router]);
 
   useEffect(() => {
     let active = true;
@@ -67,27 +76,14 @@ export function DailyChallengeCard() {
   }
 
   const viewer = puzzle.viewer;
+  const played = (viewer?.attempt_count ?? 0) >= 1;
+  const actionLabel = played ? "Leaderboard" : "Play";
 
   return (
     <button
       type="button"
-      disabled={navigating}
       onClick={() => {
-        setNavigating(true);
-        void getDailyPuzzleToday()
-          .then((today) => {
-            setCachedDailyPuzzleToday(today);
-            const played = (today.viewer?.attempt_count ?? 0) >= 1;
-            router.push(
-              played ? "/play?daily=1&view=leaderboard" : "/play?daily=1",
-            );
-          })
-          .catch(() => {
-            router.push("/play?daily=1");
-          })
-          .finally(() => {
-            setNavigating(false);
-          });
+        router.push(dailyPlayHref(puzzle));
       }}
       className="w-full rounded-xl border border-gold/30 bg-gold/10 px-4 py-3.5 text-left transition-colors hover:border-gold/50 hover:bg-gold/15"
     >
@@ -104,13 +100,18 @@ export function DailyChallengeCard() {
               : ""}
           </p>
         </div>
-        <div className="shrink-0 text-right">
-          <p className="text-[10px] font-medium uppercase tracking-wide text-gold">
-            Ends in
-          </p>
-          <p className="mt-0.5 font-[family-name:var(--font-mono)] text-sm font-semibold text-gold">
-            {countdown}
-          </p>
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          <div className="text-right">
+            <p className="text-[10px] font-medium uppercase tracking-wide text-gold">
+              Ends in
+            </p>
+            <p className="mt-0.5 font-[family-name:var(--font-mono)] text-sm font-semibold text-gold">
+              {countdown}
+            </p>
+          </div>
+          <span className="text-sm font-semibold text-gold">
+            {actionLabel} →
+          </span>
         </div>
       </div>
     </button>
