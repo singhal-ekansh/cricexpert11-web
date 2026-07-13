@@ -69,7 +69,7 @@ function DraggablePlayer({
     <div
       ref={setNodeRef}
       style={style}
-      className="draft-slot-filled flex items-center gap-2 rounded-lg px-2 py-2 sm:gap-2.5 sm:px-2.5"
+      className="draft-slot-filled flex items-start gap-2 rounded-lg px-2 py-2 sm:gap-2.5 sm:px-2.5"
     >
       <button
         type="button"
@@ -84,7 +84,7 @@ function DraggablePlayer({
         {slot}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium leading-tight text-cream">
+        <p className="text-sm font-medium leading-snug text-cream">
           <PlayerDisplayName player={player} formatId={formatId} />
         </p>
         <PlayerMetaLine

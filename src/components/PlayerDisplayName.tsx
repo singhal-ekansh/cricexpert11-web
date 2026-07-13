@@ -13,10 +13,10 @@ export function PlayerDisplayName({ player, formatId, className = "" }: Props) {
 
   return (
     <span
-      className={`inline-flex min-w-0 max-w-full items-center gap-1.5 ${className}`}
+      className={`inline-flex max-w-full flex-wrap items-center gap-x-1.5 gap-y-0.5 ${className}`}
       title={overseas ? "Overseas player" : undefined}
     >
-      <span className="truncate">{player.full_name}</span>
+      <span className="break-words">{player.full_name}</span>
       {overseas && (
         <span className="shrink-0" role="img" aria-label="Overseas player">
           <OverseasPlaneIcon size={13} className="text-sky-300/85" />

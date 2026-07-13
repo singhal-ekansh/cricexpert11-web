@@ -75,7 +75,7 @@ export function LineupScreen({
                   else if (pid) onSelectFromSlot(slot);
                 }}
                 className={[
-                  "flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-all",
+                  "flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-all",
                   player ? "border-border bg-bg-card" : "border-dashed border-border bg-bg-panel/40",
                   isTarget ? "border-gold ring-1 ring-gold/40" : "",
                   isSelected ? "border-gold ring-1 ring-gold/50" : "",
@@ -88,7 +88,7 @@ export function LineupScreen({
                 <div className="min-w-0 flex-1">
                   {player ? (
                     <>
-                      <p className="truncate font-medium text-cream">
+                      <p className="break-words font-medium leading-snug text-cream">
                         {player.full_name}
                       </p>
                       <p className="text-xs text-cream-muted">

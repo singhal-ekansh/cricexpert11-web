@@ -18,10 +18,10 @@ export function PoolPlayerRow({ player, onPick, showStats = true, formatId }: Pr
     <button
       type="button"
       onClick={onPick}
-      className="player-row group flex w-full items-center gap-3 px-3 py-3 text-left sm:py-2.5"
+      className="player-row group flex w-full items-start gap-3 px-3 py-3 text-left sm:py-2.5"
     >
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium leading-tight text-cream">
+        <p className="text-sm font-medium leading-snug text-cream">
           <PlayerDisplayName player={player} formatId={formatId} />
         </p>
         <PlayerMetaLine

@@ -49,7 +49,7 @@ export function PlayerCardView({
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <p className="truncate font-[family-name:var(--font-display)] text-lg leading-tight text-cream">
+          <p className="break-words font-[family-name:var(--font-display)] text-lg leading-snug text-cream">
             {player.full_name}
           </p>
           <p className="mt-0.5 text-xs text-cream-muted">
