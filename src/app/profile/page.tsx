@@ -159,8 +159,8 @@ export default function ProfilePage() {
   const activeItems: ChallengeSummary[] = activePage.items;
 
   const emptyMessages: Record<ProfileTab, string> = {
-    live: "Nothing to play right now. Open a friend's challenge link when they share one.",
-    completed: "Your challenges and finished drafts will show up here.",
+    live: "Active challenges you created or joined will show up here.",
+    completed: "Expired challenges from the last 24 hours appear here.",
   };
 
   return (

@@ -138,6 +138,8 @@ export interface ChallengeUser {
   avatar_url: string | null;
 }
 
+export type ChallengeVisibility = "private" | "public";
+
 export interface ChallengeSummary {
   id: string;
   seed: number;
@@ -145,6 +147,7 @@ export interface ChallengeSummary {
   wicket_mode: string;
   mode: GameMode;
   status: string;
+  visibility?: ChallengeVisibility;
   created_at: string;
   expires_at: string;
   your_score?: number | null;
@@ -163,11 +166,13 @@ export interface ChallengeDetail {
   mode: GameMode;
   engine_version: string;
   status: string;
+  visibility?: ChallengeVisibility;
   expires_at: string;
   created_at: string;
   creator: ChallengeUser | null;
   creator_score: number | null;
   submission_count: number;
+  is_expired?: boolean;
   viewer_has_submitted?: boolean;
   viewer_is_creator?: boolean;
 }
@@ -180,6 +185,17 @@ export interface CreateChallengeResponse {
   wicket_mode: string;
   mode: GameMode;
   status: string;
+  visibility?: ChallengeVisibility;
+}
+
+export interface MatchmakeChallengeResponse {
+  challenge_id: string;
+  format: string;
+  wicket_mode: string;
+  mode: GameMode;
+  creator_score: number | null;
+  creator: ChallengeUser | null;
+  expires_at: string;
 }
 
 export interface ChallengeSlotPlayer {
@@ -245,6 +261,7 @@ export interface ChallengeLeaderboard {
   your_rank: number | null;
   player_count: number;
   expires_at: string;
+  visibility?: ChallengeVisibility;
 }
 
 export interface ChallengeMySubmission {

@@ -1,7 +1,13 @@
 import Link from "next/link";
 import { ChallengeShareButton } from "@/components/ChallengeShareButton";
+import { ChallengeVisibilityBadge } from "@/components/ChallengeVisibilityBadge";
 import type { ChallengeSummary } from "@/lib/types";
-import { challengePageUrl, isChallengeShareable } from "@/lib/challenge";
+import {
+  challengePageUrl,
+  isChallengeExpired,
+  isChallengeShareable,
+} from "@/lib/challenge";
+import { formatCountdown, msUntil } from "@/lib/daily";
 import { rankWithPlayerCount } from "@/lib/rank";
 import { userDisplayName } from "@/lib/user";
 
@@ -12,11 +18,14 @@ function formatLabel(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1).replace(/_/g, " ");
 }
 
-function challengeHref(item: ChallengeSummary, tab: Tab): string {
-  if (tab === "completed" || item.your_score != null) {
+function challengeHref(item: ChallengeSummary): string {
+  if (item.your_score != null) {
     return `/play?challenge=${item.id}&view=result`;
   }
-  return `/c/${item.id}`;
+  if (isChallengeExpired(item.expires_at)) {
+    return `/c/${item.id}`;
+  }
+  return `/play?challenge=${item.id}`;
 }
 
 function relativeDate(iso: string): string {
@@ -32,11 +41,11 @@ function relativeDate(iso: string): string {
 function StatusPill({ tab }: { tab: Tab }) {
   const styles: Record<Tab, string> = {
     live: "bg-sky-500/15 text-sky-400 border-sky-500/25",
-    completed: "bg-accent-muted text-accent border-emerald-500/25",
+    completed: "bg-cream-muted/10 text-cream-muted border-border/80",
   };
   const labels: Record<Tab, string> = {
-    live: "Your turn",
-    completed: "Done",
+    live: "Active",
+    completed: "Expired",
   };
   return (
     <span
@@ -66,10 +75,7 @@ export function ProfileChallengeCard({
   const yourScore = item.your_score;
   const targetScore = item.creator_score;
   const rankHint =
-    tab === "completed" &&
-    item.your_rank != null &&
-    item.player_count &&
-    item.player_count >= 2
+    item.your_rank != null && item.player_count && item.player_count >= 2
       ? rankWithPlayerCount(item.your_rank, item.player_count)
       : null;
   const shareable = isChallengeShareable(item.expires_at);
@@ -79,17 +85,20 @@ export function ProfileChallengeCard({
     onDelete &&
     (item.participant_count ?? 1) <= 1 &&
     (item.player_count ?? 1) <= 1;
+  const expiresIn =
+    tab === "live" ? formatCountdown(msUntil(item.expires_at)) : null;
 
   return (
     <div className="group overflow-hidden rounded-xl border border-border bg-bg-card transition-colors hover:border-border-strong hover:bg-bg-card-hover">
-      <Link href={challengeHref(item, tab)} className="block p-4 sm:p-5">
+      <Link href={challengeHref(item)} className="block p-4 sm:p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="truncate text-sm font-medium text-cream sm:text-base">
+              <p className="break-words text-sm font-medium text-cream sm:text-base">
                 {title}
               </p>
               <StatusPill tab={tab} />
+              <ChallengeVisibilityBadge visibility={item.visibility} />
             </div>
             <p className="mt-1.5 text-xs text-cream-muted sm:text-[13px]">
               {formatLabel(item.format)} · {formatLabel(item.wicket_mode)} ·{" "}
@@ -97,11 +106,12 @@ export function ProfileChallengeCard({
             </p>
             <p className="mt-1 text-[11px] text-cream-muted/70">
               {relativeDate(item.created_at)}
+              {expiresIn && expiresIn !== "Ended" ? ` · expires in ${expiresIn}` : ""}
             </p>
           </div>
 
           <div className="shrink-0 text-right">
-            {tab === "live" && targetScore != null && (
+            {tab === "live" && yourScore == null && targetScore != null && (
               <>
                 <p className="text-xs text-cream-muted">Beat</p>
                 <p className="font-[family-name:var(--font-mono)] text-xl font-semibold leading-none text-gold sm:text-2xl">
@@ -109,7 +119,7 @@ export function ProfileChallengeCard({
                 </p>
               </>
             )}
-            {tab === "completed" && yourScore != null && (
+            {yourScore != null && (
               <>
                 <p className="font-[family-name:var(--font-mono)] text-xl font-semibold leading-none text-cream sm:text-2xl">
                   {yourScore}
@@ -117,8 +127,8 @@ export function ProfileChallengeCard({
                 {rankHint && (
                   <p className="mt-1.5 text-xs font-semibold text-gold">{rankHint}</p>
                 )}
-                {!rankHint && isCreator && (item.player_count ?? 0) < 2 && (
-                  <p className="mt-1.5 text-xs text-cream-muted">Waiting for friends</p>
+                {!rankHint && isCreator && (item.player_count ?? 0) < 2 && tab === "live" && (
+                  <p className="mt-1.5 text-xs text-cream-muted">Waiting for players</p>
                 )}
               </>
             )}

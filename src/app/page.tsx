@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
 import { DailyChallengeCard } from "@/components/DailyChallengeCard";
+import { PlayOnlineCard } from "@/components/PlayOnlineCard";
 import { GameLogo } from "@/components/GameLogo";
 import { GameSetupModal } from "@/components/GameSetupModal";
 import { GoogleSignInModal } from "@/components/GoogleSignInModal";
@@ -33,6 +34,7 @@ export default function HomePage() {
   const [showSetup, setShowSetup] = useState(false);
   const [showSignIn, setShowSignIn] = useState(false);
   const [signInForChallenges, setSignInForChallenges] = useState(false);
+  const [signInForOnline, setSignInForOnline] = useState(false);
 
   const handleMyChallenges = () => {
     const currentUser = user ?? getCurrentUser();
@@ -43,6 +45,20 @@ export default function HomePage() {
     setSignInForChallenges(true);
     setShowSignIn(true);
   };
+
+  const handlePlayOnline = () => {
+    const currentUser = user ?? getCurrentUser();
+    if (currentUser) {
+      router.push("/play?online=1");
+      return;
+    }
+    setSignInForOnline(true);
+    setShowSignIn(true);
+  };
+
+  useEffect(() => {
+    router.prefetch("/play?online=1");
+  }, [router]);
 
   useEffect(() => {
     const savedMode = getGameMode();
@@ -103,6 +119,9 @@ export default function HomePage() {
 
             <div className="mt-8">
               <DailyChallengeCard />
+              <div className="mt-4">
+                <PlayOnlineCard onClick={handlePlayOnline} />
+              </div>
               <div className="mt-6 space-y-2.5">
               <button
                 type="button"
@@ -159,13 +178,18 @@ export default function HomePage() {
           onClose={() => {
             setShowSignIn(false);
             setSignInForChallenges(false);
+            setSignInForOnline(false);
           }}
           onSuccess={() => {
             setShowSignIn(false);
             if (signInForChallenges) {
               router.push("/profile");
             }
+            if (signInForOnline) {
+              router.push("/play?online=1");
+            }
             setSignInForChallenges(false);
+            setSignInForOnline(false);
           }}
         />
       </main>

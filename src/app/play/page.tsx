@@ -4,10 +4,15 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { ChallengeCreateModal } from "@/components/ChallengeCreateModal";
 import { DraftBoard } from "@/components/DraftBoard";
 import { GameLogo } from "@/components/GameLogo";
 import { GoogleSignInModal } from "@/components/GoogleSignInModal";
 import { HowToPlayModal } from "@/components/HowToPlayModal";
+import {
+  OnlineMatchmakingFailed,
+  OnlineMatchmakingScreen,
+} from "@/components/OnlineMatchmakingScreen";
 import { ResultScreen } from "@/components/ResultScreen";
 import { SiteFooter } from "@/components/SiteFooter";
 import {
@@ -18,6 +23,8 @@ import {
   getChallengeMySubmission,
   getDailyLeaderboard,
   getDailyPuzzleToday,
+  joinChallenge,
+  matchmakeChallenge,
   scoreTeam,
   siteUrl,
   startChallengeDraft,
@@ -50,6 +57,7 @@ import type {
   ChallengeDetail,
   ChallengeLeaderboard,
   ChallengeMySubmission,
+  ChallengeVisibility,
   DailyLeaderboard,
   GameMode,
   GamePhase,
@@ -70,6 +78,7 @@ function PlayPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const challengeId = searchParams.get("challenge");
+  const isOnlineMatch = searchParams.get("online") === "1";
   const isDaily = searchParams.get("daily") === "1";
   const viewResult = searchParams.get("view") === "result";
   const viewDailyLeaderboard = searchParams.get("view") === "leaderboard";
@@ -101,6 +110,8 @@ function PlayPageContent() {
   const [challengeError, setChallengeError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showChallengeLogin, setShowChallengeLogin] = useState(false);
+  const [showChallengeCreate, setShowChallengeCreate] = useState(false);
+  const [onlineFailed, setOnlineFailed] = useState(false);
   const [showDailyLogin, setShowDailyLogin] = useState(false);
   const [dailyPuzzleId, setDailyPuzzleId] = useState<string | null>(null);
   const [dailyLeaderboard, setDailyLeaderboard] = useState<DailyLeaderboard | null>(null);
@@ -213,6 +224,10 @@ function PlayPageContent() {
     lastBootKey.current = bootKey;
 
     const boot = async () => {
+      if (isOnlineMatch && !challengeId) {
+        return;
+      }
+
       if (isDaily) {
         const wantsLeaderboard = viewDailyLeaderboard;
         const cachedToday = getCachedDailyPuzzleToday();
@@ -372,6 +387,19 @@ function PlayPageContent() {
           }
           if (saved) clearDraftState();
 
+          if (
+            user &&
+            !meta.viewer_is_creator &&
+            !meta.viewer_has_submitted &&
+            !meta.is_expired
+          ) {
+            try {
+              await joinChallenge(challengeId);
+            } catch {
+              // already joined
+            }
+          }
+
           const challengeSettings: GameSettings = {
             format: meta.format,
             wicketMode: meta.wicket_mode,
@@ -436,7 +464,47 @@ function PlayPageContent() {
     restoreDraft,
     router,
     showDailyLeaderboard,
+    user,
   ]);
+
+  useEffect(() => {
+    if (!isOnlineMatch || challengeId) return;
+
+    let active = true;
+    const run = async () => {
+      if (!user) {
+        router.replace("/");
+        return;
+      }
+      setOnlineFailed(false);
+      setLoading(true);
+      const start = Date.now();
+      try {
+        const match = await matchmakeChallenge();
+        const elapsed = Date.now() - start;
+        const delay = Math.max(0, 3200 - elapsed);
+        if (delay > 0) {
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+        if (!active) return;
+        router.replace(`/play?challenge=${match.challenge_id}`, { scroll: false });
+      } catch {
+        const elapsed = Date.now() - start;
+        const delay = Math.max(0, 3200 - elapsed);
+        if (delay > 0) {
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+        if (!active) return;
+        setOnlineFailed(true);
+        setLoading(false);
+      }
+    };
+
+    void run();
+    return () => {
+      active = false;
+    };
+  }, [isOnlineMatch, challengeId, user, router]);
 
   useEffect(() => {
     if (loading || !game || phase !== "draft" || viewDailyLeaderboard) return;
@@ -662,7 +730,8 @@ function PlayPageContent() {
     runDailySubmit,
   ]);
 
-  const doCreateChallenge = useCallback(async () => {
+  const doCreateChallenge = useCallback(
+    async (visibility: ChallengeVisibility) => {
     if (!game || !score) return;
     const payload: Record<string, string> = {};
     for (let s = 1; s <= 11; s++) payload[String(s)] = lineup[s];
@@ -689,9 +758,11 @@ function PlayPageContent() {
         mode: game.mode ?? mode,
         lineup: payload,
         pool_player_ids: poolPlayerIds,
+        visibility,
       });
       setCreatedChallengeId(created.id);
       setChallengeShareUrl(siteUrl(`/c/${created.id}`));
+      setShowChallengeCreate(false);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Could not create challenge";
@@ -699,14 +770,17 @@ function PlayPageContent() {
     } finally {
       setChallengeLoading(false);
     }
-  }, [game, score, lineup, mode]);
+  },
+    [game, score, lineup, mode],
+  );
 
   const handleChallengeFriend = () => {
     if (!user) {
       setShowChallengeLogin(true);
       return;
     }
-    void doCreateChallenge();
+    setChallengeError(null);
+    setShowChallengeCreate(true);
   };
 
   const handleDailyPlayAgain = () => {
@@ -778,7 +852,13 @@ function PlayPageContent() {
           </div>
         )}
 
-        {loading && (
+        {isOnlineMatch && !challengeId && !onlineFailed && (
+          <OnlineMatchmakingScreen />
+        )}
+
+        {isOnlineMatch && !challengeId && onlineFailed && <OnlineMatchmakingFailed />}
+
+        {loading && !(isOnlineMatch && !challengeId) && (
           <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-gold border-t-transparent" />
             <p className="text-sm text-cream-muted">
@@ -870,6 +950,27 @@ function PlayPageContent() {
       </div>
 
       <GoogleSignInModal
+        open={showChallengeLogin}
+        onClose={() => setShowChallengeLogin(false)}
+        onSuccess={() => {
+          setShowChallengeLogin(false);
+          setShowChallengeCreate(true);
+        }}
+      />
+
+      <ChallengeCreateModal
+        open={showChallengeCreate}
+        loading={challengeLoading}
+        error={challengeError}
+        onClose={() => {
+          if (!challengeLoading) setShowChallengeCreate(false);
+        }}
+        onCreate={(visibility) => {
+          void doCreateChallenge(visibility);
+        }}
+      />
+
+      <GoogleSignInModal
         open={showDailyLogin}
         onClose={() => {
           setShowDailyLogin(false);
@@ -880,15 +981,6 @@ function PlayPageContent() {
           if (pendingDailySubmit.current) {
             void runDailySubmit();
           }
-        }}
-      />
-
-      <GoogleSignInModal
-        open={showChallengeLogin}
-        onClose={() => setShowChallengeLogin(false)}
-        onSuccess={() => {
-          setShowChallengeLogin(false);
-          void doCreateChallenge();
         }}
       />
 

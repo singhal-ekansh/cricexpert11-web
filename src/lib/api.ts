@@ -16,6 +16,7 @@ import type {
   DailyPuzzleStartResponse,
   DailyPuzzleToday,
   DailySubmitResponse,
+  MatchmakeChallengeResponse,
   ScoreResponse,
   SubmitChallengeResponse,
 } from "./types";
@@ -133,10 +134,17 @@ export function createChallenge(payload: {
   mode: GameMode;
   lineup: Record<string, string>;
   pool_player_ids: string[][];
+  visibility?: "private" | "public";
 }): Promise<CreateChallengeResponse> {
   return apiFetch<CreateChallengeResponse>("/api/v1/challenges", {
     method: "POST",
     body: JSON.stringify(payload),
+  });
+}
+
+export function matchmakeChallenge(): Promise<MatchmakeChallengeResponse> {
+  return apiFetch<MatchmakeChallengeResponse>("/api/v1/challenges/matchmake", {
+    method: "POST",
   });
 }
 

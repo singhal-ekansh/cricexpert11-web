@@ -7,6 +7,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { GameLogo } from "@/components/GameLogo";
 import { GoogleSignInModal } from "@/components/GoogleSignInModal";
 import { ChallengeSharePanel } from "@/components/ChallengeSharePanel";
+import { ChallengeVisibilityBadge } from "@/components/ChallengeVisibilityBadge";
 import { SiteFooter } from "@/components/SiteFooter";
 import { getChallenge, joinChallenge } from "@/lib/api";
 import type { ChallengeDetail } from "@/lib/types";
@@ -135,9 +136,12 @@ export default function ChallengePage() {
 
         {challenge && !loading && (
           <div className="hero-card rounded-2xl px-6 py-8 text-center">
-            <p className="text-sm text-accent">
-              {challenge.viewer_is_creator ? "My challenge" : "Friend challenge"}
-            </p>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <p className="text-sm text-accent">
+                {challenge.viewer_is_creator ? "My challenge" : "Friend challenge"}
+              </p>
+              <ChallengeVisibilityBadge visibility={challenge.visibility} />
+            </div>
             <h1 className="mt-2 text-2xl font-semibold text-cream sm:text-3xl">
               {challenge.viewer_is_creator ? (
                 <>

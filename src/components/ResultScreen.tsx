@@ -157,7 +157,7 @@ export function ResultScreen({
               disabled={challengeLoading}
               className="btn-gold rounded-xl px-10 py-3.5 text-sm sm:min-w-[10rem] sm:py-4 disabled:opacity-60"
             >
-              {challengeLoading ? "Creating…" : "Challenge a friend"}
+              Create challenge
             </button>
           )}
           {onPlayAgain && (
